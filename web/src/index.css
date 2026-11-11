@@ -66,3 +66,21 @@
       rgb(var(--c-bg));
   }
 }
+
+/* Типографика CMS-контента (без плагина typography) */
+@layer components {
+  .prose { @apply max-w-3xl leading-relaxed; }
+  .prose p { @apply my-3; }
+  .prose h2 { @apply mb-2 mt-8 text-2xl; }
+  .prose h3 { @apply mb-2 mt-6 text-xl; }
+  .prose ul { @apply my-3 list-disc space-y-1 pl-6; }
+  .prose ol { @apply my-3 list-decimal space-y-1 pl-6; }
+  .prose a { @apply underline; }
+  .prose a[target="_blank"]::after { content: " ↗"; }
+  .prose small { @apply text-sm text-muted; }
+  .prose code { @apply rounded bg-surface-2 px-1 font-mono text-sm; }
+  .prose blockquote { @apply border-l-4 border-line pl-4 italic; }
+  .prose table { @apply my-4 block w-full overflow-x-auto border-collapse text-sm md:table; }
+  .prose th, .prose td { @apply border border-line px-3 py-2 text-left align-top; }
+  .prose th { @apply bg-surface-2 font-semibold; }
+}

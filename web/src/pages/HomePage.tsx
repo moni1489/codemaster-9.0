@@ -11,7 +11,8 @@ import { Loading } from "../components/ui/States";
 import { yearsLabel } from "../features/catalog/shared";
 import { apiGet } from "../lib/api";
 import { SITE } from "../lib/site";
-import type { Branch, SearchResponse, TodayResponse } from "../lib/types";
+import type { Branch, NewsList, SearchResponse, TodayResponse } from "../lib/types";
+import { NewsCard } from "./NewsPages";
 
 const EXAMPLES = {
   ru: ["фотографии Усть-Каменогорска 1960-х", "Лениногорск", "газета 1945", "личные фонды"],
@@ -225,6 +226,29 @@ function InfoCards() {
   );
 }
 
+function LatestNews() {
+  const { t } = useT();
+  const lang = useLang();
+  const q = useQuery({
+    queryKey: ["home-news", lang],
+    queryFn: () => apiGet<NewsList>("/news", lang, { page_size: 3 }),
+    staleTime: 5 * 60_000,
+  });
+  if (!q.data?.items.length) return null;
+  return (
+    <section className="container-page pb-12" aria-labelledby="h-news">
+      <SectionTitle id="h-news" title={t("home.newsTitle")} to="/news" more={t("nav.news")} />
+      <ul className="grid gap-5 md:grid-cols-3">
+        {q.data.items.map((n) => (
+          <li key={n.id}>
+            <NewsCard item={n} />
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 function Useful() {
   const { t } = useT();
   const lp = useLocalePath();
@@ -287,6 +311,7 @@ export function HomePage() {
       <Hero />
       <HistoryInDocuments />
       <InfoCards />
+      <LatestNews />
       <Useful />
     </>
   );

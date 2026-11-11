@@ -13,6 +13,15 @@ const HierarchyPage = lazy(() =>
   import("../pages/catalog/HierarchyPages").then((m) => ({ default: m.HierarchyPage })),
 );
 
+const InfoPage = lazy(() => import("../pages/info/InfoPages").then((m) => ({ default: m.InfoPage })));
+const SectionHub = lazy(() => import("../pages/info/InfoPages").then((m) => ({ default: m.SectionHub })));
+const MemorialDatesPage = lazy(() =>
+  import("../pages/info/InfoPages").then((m) => ({ default: m.MemorialDatesPage })),
+);
+const NewsListPage = lazy(() => import("../pages/NewsPages").then((m) => ({ default: m.NewsListPage })));
+const NewsDetailPage = lazy(() => import("../pages/NewsPages").then((m) => ({ default: m.NewsDetailPage })));
+const FaqPage = lazy(() => import("../pages/FaqPage").then((m) => ({ default: m.FaqPage })));
+
 const page = (node: ReactNode) => <Suspense fallback={<Loading />}>{node}</Suspense>;
 
 function preferredLang(): string {
@@ -55,14 +64,19 @@ export const router = createBrowserRouter([
       { path: "catalog/cases/:id", element: page(<HierarchyPage level="case" />) },
       { path: "catalog/documents/:id", element: page(<DocumentPage />) },
       // Разделы следующих этапов — явно помечены как «раздел наполняется»
-      { path: "about/*", element: dev("about") },
-      { path: "visitors/*", element: dev("visitors") },
-      { path: "services/*", element: dev("services") },
+      { path: "about", element: page(<InfoPage key="about" section="about" />) },
+      { path: "about/:sub", element: page(<InfoPage section="about" />) },
+      { path: "services", element: page(<SectionHub key="services" section="services" />) },
+      { path: "services/:sub", element: page(<InfoPage section="services" />) },
+      { path: "visitors", element: page(<SectionHub key="visitors" section="visitors" />) },
+      { path: "visitors/memorial-dates", element: page(<MemorialDatesPage />) },
+      { path: "visitors/:sub", element: page(<InfoPage section="visitors" />) },
       { path: "history/*", element: dev("history") },
       { path: "exhibitions/*", element: dev("exhibitions") },
-      { path: "news/*", element: dev("news") },
+      { path: "news", element: page(<NewsListPage />) },
+      { path: "news/:slug", element: page(<NewsDetailPage />) },
       { path: "branches/*", element: dev("branches") },
-      { path: "faq", element: dev("faq") },
+      { path: "faq", element: page(<FaqPage />) },
       { path: "assistant", element: dev("assistant") },
       { path: "*", element: <NotFound /> },
     ],

@@ -7,7 +7,7 @@ import secrets
 import shutil
 import uuid
 from dataclasses import dataclass
-from datetime import date
+from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Any
 
@@ -16,6 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.passwords import hash_password
 from app.auth.permissions import PERMISSIONS, ROLE_NAMES, ROLE_PERMISSIONS
+from app.cms.sanitize import clean_html
 from app.core.config import get_settings
 from app.media import storage
 from app.models import (
@@ -27,12 +28,20 @@ from app.models import (
     DigitalFile,
     Document,
     DocumentTranslation,
+    Faq,
+    FaqGroup,
+    FaqGroupTranslation,
+    FaqTranslation,
     Fund,
     FundTranslation,
     Inventory,
     InventoryTranslation,
     MemorialDate,
     MemorialDateTranslation,
+    News,
+    NewsTranslation,
+    Page,
+    PageTranslation,
     Permission,
     Role,
     RolePermission,
@@ -380,6 +389,125 @@ def _sheet_count(label: str) -> int | None:
     return nums[-1] - nums[0] + 1 if len(nums) > 1 else 1
 
 
+def _content(name: str) -> Any:
+    return json.loads((seed_dir() / "content" / name).read_text(encoding="utf-8"))
+
+
+def _status(lang: str, original: str, overrides: dict[str, str] | None) -> str:
+    if lang == original:
+        return "original"
+    return (overrides or {}).get(lang, "machine")
+
+
+async def seed_pages(session: AsyncSession) -> int:
+    data = _content("pages.json")["pages"]
+    pages_dir = seed_dir() / "content" / "pages"
+    for i, p in enumerate(data):
+        page = Page(
+            slug=p["slug"],
+            section=p["section"],
+            sort_order=p.get("sort", i),
+            actualized_at=datetime.fromisoformat(p["actualized_at"]).replace(tzinfo=UTC)
+            if p.get("actualized_at")
+            else None,
+            attachments=p.get("attachments"),
+            data=_content(p["data_file"]) if p.get("data_file") else p.get("data"),
+            is_demo=bool(p.get("is_demo")),
+            workflow_status="published",
+        )
+        bodies: dict[str, str] = dict(p.get("body") or {})
+        for lang, fname in (p.get("body_file") or {}).items():
+            bodies[lang] = (pages_dir / fname).read_text(encoding="utf-8")
+        for lang, extra in (p.get("body_suffix") or {}).items():
+            bodies[lang] = bodies.get(lang, "") + extra
+        for lang in LANGS:
+            title = p["title"].get(lang)
+            if not title:
+                continue
+            body = bodies.get(lang)
+            page.translations.append(
+                PageTranslation(
+                    lang=lang,
+                    # тела на этом языке может не быть — тогда API отдаст тело оригинала с флагом фолбэка
+                    translation_status=_status(lang, "ru", p.get("tr_status")),
+                    title=title,
+                    body=clean_html(body) if body else None,
+                    meta_description=(p.get("meta") or {}).get(lang),
+                )
+            )
+        session.add(page)
+    return len(data)
+
+
+async def seed_faq_news(session: AsyncSession, with_images: bool = True) -> tuple[int, int]:
+    data = _content("faq_news.json")
+    n_faq = 0
+    for gi, g in enumerate(data["faq"]):
+        group = FaqGroup(slug=g["slug"], sort_order=gi)
+        group.translations = [
+            FaqGroupTranslation(lang=lang, translation_status=_status(lang, "ru", None), title=t)
+            for lang, t in g["title"].items()
+        ]
+        session.add(group)
+        await session.flush()
+        for ii, item in enumerate(g["items"]):
+            faq = Faq(group_id=group.id, sort_order=ii, workflow_status="published")
+            faq.translations = [
+                FaqTranslation(
+                    lang=lang, translation_status=_status(lang, "ru", None), question=q, answer=item["a"][lang]
+                )
+                for lang, q in item["q"].items()
+                if item["a"].get(lang)
+            ]
+            session.add(faq)
+            n_faq += 1
+    for n in data["news"]:
+        news = News(
+            slug=n["slug"],
+            category=n["category"],
+            published_at=datetime.fromisoformat(n["date"]).replace(tzinfo=UTC),
+            workflow_status="published",
+            is_demo=True,
+        )
+        for lang, title in n["title"].items():
+            body = (n.get("body") or {}).get(lang)
+            news.translations.append(
+                NewsTranslation(
+                    lang=lang,
+                    translation_status=_status(lang, "ru", None),
+                    title=title,
+                    lead=(n.get("lead") or {}).get(lang),
+                    body=clean_html(body) if body else None,
+                )
+            )
+        if with_images:
+            news.cover_file_id = await _site_image(session, "photo", f"news:{n['slug']}", n["title"]["ru"])
+        session.add(news)
+    return n_faq, len(data["news"])
+
+
+async def _site_image(session: AsyncSession, kind: str, key: str, title: str) -> uuid.UUID:
+    """Изображение сайта (не документ каталога): мастер + облегчённая копия; возвращает id копии."""
+    data = render(kind, key, title, 1)
+    master = storage.store_master(data)
+    view, _thumb = storage.store_derivatives(data)
+    provenance = "Сгенерированная демонстрационная заглушка (Pillow)"
+    rights = "CC0 (сгенерировано)"
+    m = DigitalFile(
+        kind="master", storage_key=master.storage_key, mime=master.mime, size=master.size, sha256=master.sha256,
+        width=master.width, height=master.height, provenance=provenance, rights_note=rights, is_demo=True,
+    )  # fmt: skip
+    session.add(m)
+    await session.flush()
+    v = DigitalFile(
+        kind="view", parent_id=m.id, storage_key=view.storage_key, mime=view.mime, size=view.size, sha256=view.sha256,
+        width=view.width, height=view.height, provenance=provenance, rights_note=rights, is_demo=True,
+    )  # fmt: skip
+    session.add(v)
+    await session.flush()
+    return v.id
+
+
 async def seed_all(session: AsyncSession, *, with_images: bool = True, with_users: bool = True) -> dict[str, Any]:
     await reset(session)
     roles = await seed_roles(session)
@@ -388,6 +516,8 @@ async def seed_all(session: AsyncSession, *, with_images: bool = True, with_user
     md = await seed_memorial_dates(session)
     await seed_synonyms(session)
     keys = await seed_catalog(session, branches, with_images)
+    pages = await seed_pages(session)
+    n_faq, n_news = await seed_faq_news(session, with_images)
     await session.flush()
     indexed = await get_search_backend().rebuild(session)
     await session.commit()
@@ -397,6 +527,9 @@ async def seed_all(session: AsyncSession, *, with_images: bool = True, with_user
         "documents": total_docs,
         "indexed": indexed,
         "memorial_dates": md,
+        "pages": pages,
+        "faq": n_faq,
+        "news": n_news,
         "keys": keys,
         "roles": roles,
         "branches": branches,

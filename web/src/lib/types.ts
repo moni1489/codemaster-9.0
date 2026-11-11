@@ -182,3 +182,87 @@ export interface TodayResponse {
   exact: boolean;
   items: MemorialDate[];
 }
+
+// ---- CMS ----
+export interface Attachment {
+  title: string;
+  url: string;
+  kind: "pdf" | "link";
+  external: boolean;
+  lang: string | null;
+  verified: boolean;
+}
+
+export interface PriceRow {
+  index: string;
+  name: string;
+  unit: string;
+  price: string;
+}
+
+export interface PriceData {
+  act: { title: string; issuer: string; kind: string; number: string; date: string; basis: string; in_force: string };
+  transcription_note: string;
+  currency: string;
+  sections: { no: string; title: string; rows: PriceRow[]; footnote?: string }[];
+  other_sections: { no: string; title: string; pages: string; paraphrased?: boolean }[];
+}
+
+export interface LegalAct {
+  title: string;
+  requisites: string;
+  url: string;
+  verified: boolean;
+  local?: boolean;
+  note?: string;
+}
+
+export interface PageOut {
+  slug: string;
+  section: string;
+  title: string;
+  body: string | null;
+  meta_description: string | null;
+  actualized_at: string | null;
+  attachments: Attachment[];
+  data: (Partial<PriceData> & { acts?: LegalAct[] }) | null;
+  is_demo: boolean;
+  translation: TranslationInfo;
+}
+
+export interface PageLink {
+  slug: string;
+  section: string;
+  title: string;
+}
+
+export interface NewsItem {
+  id: string;
+  slug: string;
+  category: string;
+  published_at: string | null;
+  title: string;
+  lead: string | null;
+  cover_url: string | null;
+  is_demo: boolean;
+  translation: TranslationInfo;
+}
+
+export interface NewsList {
+  items: NewsItem[];
+  total: number;
+  page: number;
+  pages: number;
+}
+
+export interface NewsOut extends NewsItem {
+  body: string | null;
+  video_url: string | null;
+  related: NewsItem[];
+}
+
+export interface FaqGroup {
+  slug: string;
+  title: string;
+  items: { id: string; question: string; answer: string; translation: TranslationInfo }[];
+}

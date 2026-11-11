@@ -9,6 +9,14 @@ from typing import Literal
 from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+_REPO = Path(__file__).resolve().parents[3]
+
+
+def _repo_or(local: str, container: str) -> Path:
+    """Путь внутри репозитория при локальном запуске, иначе — точка монтирования в контейнере."""
+    candidate = _REPO / local
+    return candidate if candidate.exists() else Path(container)
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=("../.env", ".env"), env_file_encoding="utf-8", extra="ignore")
@@ -23,8 +31,8 @@ class Settings(BaseSettings):
 
     site_url: str = "https://localhost"
     storage_dir: Path = Path("/data/storage")
-    seed_dir: Path = Path("/app/seed")
-    docs_source_dir: Path = Path("/app/docs_source")
+    seed_dir: Path = Field(default_factory=lambda: _repo_or("seed", "/app/seed"))
+    docs_source_dir: Path = Field(default_factory=lambda: _repo_or("docs/source", "/app/docs_source"))
     max_upload_mb: int = 50
 
     llm_provider: Literal["auto", "anthropic", "ollama", "rule"] = "auto"

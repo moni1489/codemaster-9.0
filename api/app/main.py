@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from sqlalchemy import text
 
 from app.catalog.router import router as catalog_router
+from app.cms.router import router as cms_router
 from app.core.config import get_settings
 from app.core.db import get_engine
 from app.core.logging import configure_logging, log
@@ -35,6 +36,7 @@ def create_app() -> FastAPI:
         return {"status": "ok", "db": db_state, "llm_provider": get_settings().llm_provider}
 
     app.include_router(catalog_router)
+    app.include_router(cms_router)
     app.include_router(media_router)
     app.include_router(public_router)
     return app
