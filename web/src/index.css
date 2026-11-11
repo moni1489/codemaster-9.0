@@ -84,3 +84,9 @@
   .prose th, .prose td { @apply border border-line px-3 py-2 text-left align-top; }
   .prose th { @apply bg-surface-2 font-semibold; }
 }
+
+/* Заголовок панели фильтров — внутри карточки, а не «врезкой» в рамку fieldset */
+@layer components {
+  fieldset.card > legend { @apply float-left mb-3 w-full p-0 font-serif text-lg; }
+  fieldset.card > legend + * { clear: both; }
+}

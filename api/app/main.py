@@ -5,6 +5,11 @@ from __future__ import annotations
 from fastapi import FastAPI
 from sqlalchemy import text
 
+from app.admin.branches import router as admin_branches
+from app.admin.catalog import router as admin_catalog
+from app.admin.content import router as admin_content
+from app.admin.system import router as admin_system
+from app.auth.router import router as auth_router
 from app.catalog.router import router as catalog_router
 from app.cms.router import router as cms_router
 from app.core.config import get_settings
@@ -36,6 +41,8 @@ def create_app() -> FastAPI:
         return {"status": "ok", "db": db_state, "llm_provider": get_settings().llm_provider}
 
     app.include_router(catalog_router)
+    for r in (auth_router, admin_branches, admin_catalog, admin_content, admin_system):
+        app.include_router(r)
     app.include_router(cms_router)
     app.include_router(media_router)
     app.include_router(public_router)

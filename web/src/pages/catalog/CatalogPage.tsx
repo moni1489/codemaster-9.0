@@ -103,10 +103,15 @@ export function CatalogPage() {
   )?.key;
   const hasAny = [...sp.keys()].some((k) => k !== "page" && k !== "sort");
 
-  const field = (k: (typeof TEXT_FIELDS)[number], label: string, extra: { inputMode?: "numeric"; maxLength?: number } = {}) => (
+  const field = (
+    k: (typeof TEXT_FIELDS)[number],
+    label: string,
+    extra: { inputMode?: "numeric"; maxLength?: number; fullLabel?: string } = {},
+  ) => (
     <div>
-      <label htmlFor={`f-${k}`} className="mb-1 block text-sm font-medium">
+      <label htmlFor={`f-${k}`} className="mb-1 block truncate text-sm font-medium" title={extra.fullLabel}>
         {label}
+        {extra.fullLabel && <span className="sr-only"> ({extra.fullLabel})</span>}
       </label>
       <input
         id={`f-${k}`}
@@ -180,12 +185,15 @@ export function CatalogPage() {
             className={`${showFilters ? "block" : "hidden"} space-y-5 lg:block`}
           >
             <fieldset className="card space-y-3 p-4">
-              <legend className="px-1 font-serif text-lg">{t("catalog.advancedFields")}</legend>
+              <legend>{t("catalog.advancedFields")}</legend>
               {field("title", t("catalog.fields.title"))}
               <div className="grid grid-cols-3 gap-2">
-                {field("fund", t("catalog.fields.fund"), { maxLength: 32 })}
-                {field("inventory", t("catalog.fields.inventory"), { maxLength: 32 })}
-                {field("case", t("catalog.fields.case"), { maxLength: 32 })}
+                {field("fund", t("catalog.fields.fundShort"), { maxLength: 32, fullLabel: t("catalog.fields.fund") })}
+                {field("inventory", t("catalog.fields.inventoryShort"), {
+                  maxLength: 32,
+                  fullLabel: t("catalog.fields.inventory"),
+                })}
+                {field("case", t("catalog.fields.caseShort"), { maxLength: 32, fullLabel: t("catalog.fields.case") })}
               </div>
               {field("year", t("catalog.fields.year"), { inputMode: "numeric", maxLength: 4 })}
               {field("author", t("catalog.fields.author"))}
@@ -197,7 +205,7 @@ export function CatalogPage() {
             </fieldset>
 
             <fieldset className="card space-y-2 p-4">
-              <legend className="px-1 font-serif text-lg">{t("catalog.periods.label")}</legend>
+              <legend>{t("catalog.periods.label")}</legend>
               {PERIODS.map((p) => (
                 <label key={p.key} className="flex items-center gap-2 text-sm">
                   <input
@@ -231,7 +239,7 @@ export function CatalogPage() {
             </fieldset>
 
             <fieldset className="card space-y-2 p-4">
-              <legend className="px-1 font-serif text-lg">{t("catalog.fields.category")}</legend>
+              <legend>{t("catalog.fields.category")}</legend>
               {CATEGORIES.map((c) => {
                 const count = facets.data?.categories.find((f) => f.value === c)?.count ?? 0;
                 return (
@@ -249,7 +257,7 @@ export function CatalogPage() {
             </fieldset>
 
             <fieldset className="card space-y-2 p-4">
-              <legend className="px-1 font-serif text-lg">{t("catalog.fields.docType")}</legend>
+              <legend>{t("catalog.fields.docType")}</legend>
               {(facets.data?.doc_types ?? []).map((f) => (
                 <label key={f.value} className="flex items-center gap-2 text-sm">
                   <input
@@ -264,7 +272,7 @@ export function CatalogPage() {
             </fieldset>
 
             <fieldset className="card space-y-3 p-4">
-              <legend className="px-1 font-serif text-lg">{t("catalog.fields.branch")}</legend>
+              <legend>{t("catalog.fields.branch")}</legend>
               <label htmlFor="f-branch" className="sr-only">
                 {t("catalog.fields.branch")}
               </label>

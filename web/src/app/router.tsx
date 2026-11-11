@@ -1,3 +1,4 @@
+import type React from "react";
 import { lazy, Suspense, type ReactNode } from "react";
 import { createBrowserRouter, Navigate, useLocation, useParams } from "react-router-dom";
 import { Layout } from "../components/layout/Layout";
@@ -21,6 +22,26 @@ const MemorialDatesPage = lazy(() =>
 const NewsListPage = lazy(() => import("../pages/NewsPages").then((m) => ({ default: m.NewsListPage })));
 const NewsDetailPage = lazy(() => import("../pages/NewsPages").then((m) => ({ default: m.NewsDetailPage })));
 const FaqPage = lazy(() => import("../pages/FaqPage").then((m) => ({ default: m.FaqPage })));
+
+// Админ-панель — отдельный чанк, на публичных страницах не загружается
+const adminLazy = <K extends string>(loader: () => Promise<Record<K, React.ComponentType>>, name: K) =>
+  lazy(() => loader().then((m) => ({ default: m[name] })));
+const RequireAuth = lazy(() => import("../admin/auth").then((m) => ({ default: m.RequireAuth })));
+const AdminLayout = adminLazy(() => import("../admin/ui"), "AdminLayout");
+const LoginPage = adminLazy(() => import("../admin/pages/LoginDashboard"), "LoginPage");
+const Dashboard = adminLazy(() => import("../admin/pages/LoginDashboard"), "Dashboard");
+const NewsList = adminLazy(() => import("../admin/pages/ContentPages"), "NewsList");
+const NewsEdit = adminLazy(() => import("../admin/pages/ContentPages"), "NewsEdit");
+const PagesList = adminLazy(() => import("../admin/pages/ContentPages"), "PagesList");
+const PageEdit = adminLazy(() => import("../admin/pages/ContentPages"), "PageEdit");
+const FaqAdminPage = adminLazy(() => import("../admin/pages/ContentPages"), "FaqAdminPage");
+const FeedbackAdmin = adminLazy(() => import("../admin/pages/ContentPages"), "FeedbackAdmin");
+const CatalogList = adminLazy(() => import("../admin/pages/CatalogAdmin"), "CatalogList");
+const DocumentEdit = adminLazy(() => import("../admin/pages/CatalogAdmin"), "DocumentEdit");
+const BranchesAdmin = adminLazy(() => import("../admin/pages/SystemAdmin"), "BranchesAdmin");
+const BranchEdit = adminLazy(() => import("../admin/pages/SystemAdmin"), "BranchEdit");
+const AuditAdmin = adminLazy(() => import("../admin/pages/SystemAdmin"), "AuditAdmin");
+const UsersAdmin = adminLazy(() => import("../admin/pages/SystemAdmin"), "UsersAdmin");
 
 const page = (node: ReactNode) => <Suspense fallback={<Loading />}>{node}</Suspense>;
 
@@ -48,6 +69,31 @@ const dev = (key: string) => page(<InDevelopment titleKey={`nav.${key}`} />);
 
 export const router = createBrowserRouter([
   { path: "/", element: <RootRedirect /> },
+  { path: "/admin/login", element: page(<LoginPage />) },
+  {
+    path: "/admin",
+    element: page(
+      <RequireAuth>
+        <AdminLayout />
+      </RequireAuth>,
+    ),
+    children: [
+      { index: true, element: page(<Dashboard />) },
+      { path: "catalog", element: page(<CatalogList />) },
+      { path: "catalog/:id", element: page(<DocumentEdit />) },
+      { path: "news", element: page(<NewsList />) },
+      { path: "news/:id", element: page(<NewsEdit />) },
+      { path: "pages", element: page(<PagesList />) },
+      { path: "pages/:id", element: page(<PageEdit />) },
+      { path: "faq", element: page(<FaqAdminPage />) },
+      { path: "feedback", element: page(<FeedbackAdmin />) },
+      { path: "branches", element: page(<BranchesAdmin />) },
+      { path: "branches/:id", element: page(<BranchEdit />) },
+      { path: "audit", element: page(<AuditAdmin />) },
+      { path: "users", element: page(<UsersAdmin />) },
+      { path: "*", element: <NotFound /> },
+    ],
+  },
   {
     path: "/:lang",
     element: (

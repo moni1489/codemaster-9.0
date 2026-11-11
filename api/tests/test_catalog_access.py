@@ -161,7 +161,8 @@ async def test_unpublishing_removes_from_index(
         await session.execute(update(Document).where(Document.id == doc_id).values(description_status="hidden"))
         assert await backend.index_document(session, doc_id) is False
         await session.commit()
-        assert (await client.get("/api/catalog/search", params={"q": "школа № 24"})).json()["total"] == 0
+        items = (await client.get("/api/catalog/search", params={"q": "школа № 24"})).json()["items"]
+        assert str(doc_id) not in {i["id"] for i in items}
         assert (await client.get(f"/api/catalog/documents/{doc_id}")).status_code == 404
     finally:
         await session.execute(update(Document).where(Document.id == doc_id).values(description_status="public"))

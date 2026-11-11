@@ -3,7 +3,8 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 // Д §1, §9: на сайте нет форм заявлений/заказов/оплаты. Разрешены: поиск (role="search"),
-// отзыв о сайте (data-form="feedback", с дисклеймером), вход в админку (data-form="login").
+// отзыв о сайте (data-form="feedback", с дисклеймером), вход в админку (data-form="login"),
+// формы редактирования в админ-панели (data-form="admin", только src/admin).
 const SRC = join(__dirname, "..");
 
 function files(dir: string): string[] {
@@ -20,7 +21,9 @@ test("каждая <form> — поиск, отзыв или вход в адми
     const text: string = readFileSync(f, "utf-8");
     for (const m of text.matchAll(/<form\b[^>]*>/g)) {
       const tag = m[0];
-      if (!/role="search"|data-form="feedback"|data-form="login"/.test(tag)) offenders.push(`${f}: ${tag}`);
+      // формы редактирования контента разрешены только внутри админ-панели сотрудников (src/admin)
+      const adminForm = /data-form="admin"/.test(tag) && /[\\/]admin[\\/]/.test(f);
+      if (!/role="search"|data-form="feedback"|data-form="login"/.test(tag) && !adminForm) offenders.push(`${f}: ${tag}`);
     }
   }
   expect(offenders).toEqual([]);
