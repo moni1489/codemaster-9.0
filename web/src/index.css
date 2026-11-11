@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Цветовые токены (RGB-тройки). Контраст текста ≥ 4.5:1 в обеих темах. */
+:root,
+[data-theme="light"] {
+  --c-bg: 248 246 241;
+  --c-surface: 255 255 255;
+  --c-surface-2: 240 236 227;
+  --c-line: 214 207 193;
+  --c-ink: 28 31 36;
+  --c-muted: 84 88 96;
+  --c-primary: 14 76 92;
+  --c-primary-ink: 255 255 255;
+  --c-accent: 150 80 20;
+  --c-danger: 170 30 40;
+  --c-ok: 22 110 60;
+  --c-warn: 135 85 0;
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --c-bg: 17 21 26;
+  --c-surface: 25 31 38;
+  --c-surface-2: 34 41 50;
+  --c-line: 58 67 78;
+  --c-ink: 232 230 225;
+  --c-muted: 170 176 186;
+  --c-primary: 110 190 205;
+  --c-primary-ink: 10 24 30;
+  --c-accent: 228 168 98;
+  --c-danger: 255 130 130;
+  --c-ok: 120 210 150;
+  --c-warn: 240 195 90;
+  color-scheme: dark;
+}
+
+@layer base {
+  html { -webkit-text-size-adjust: 100%; }
+  body { @apply bg-bg text-ink font-sans antialiased; }
+  h1, h2, h3 { @apply font-serif; }
+  :focus-visible { outline: 3px solid rgb(var(--c-accent)); outline-offset: 2px; }
+  a { @apply text-primary underline-offset-2; }
+}
+
+@layer components {
+  .container-page { @apply mx-auto w-full max-w-content px-4 sm:px-6; }
+  .card { @apply rounded-xl border border-line bg-surface; }
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium no-underline transition-colors disabled:opacity-50; }
+  .btn-primary { @apply btn bg-primary text-primary-ink hover:opacity-90; }
+  .btn-ghost { @apply btn border border-line bg-surface text-ink hover:bg-surface-2; }
+  .badge { @apply inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium; }
+  .input { @apply w-full rounded-lg border border-line bg-surface px-3 py-2 text-ink placeholder:text-muted; }
+  .cipher { @apply font-mono break-all; }
+  .sr-only-focusable:not(:focus) { @apply sr-only; }
+}

@@ -1,0 +1,62 @@
+[project]
+name = "vko-archive-api"
+version = "0.1.0"
+description = "API прототипа сайта Государственного архива ВКО"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "fastapi==0.115.6",
+  "uvicorn[standard]==0.32.1",
+  "sqlalchemy[asyncio]==2.0.36",
+  "asyncpg==0.30.0",
+  "alembic==1.14.0",
+  "pydantic==2.10.3",
+  "pydantic-settings==2.6.1",
+  "passlib[argon2]==1.7.4",
+  "pyjwt==2.10.1",
+  "itsdangerous==2.2.0",
+  "slowapi==0.1.9",
+  "python-multipart==0.0.19",
+  "pillow==11.0.0",
+  "pytesseract==0.3.13",
+  "openpyxl==3.1.5",
+  "bleach==6.2.0",
+  "httpx==0.28.1",
+  "structlog==24.4.0",
+  "pypdfium2==4.30.0",
+]
+
+[dependency-groups]
+dev = [
+  "pytest==8.3.4",
+  "pytest-asyncio==0.24.0",
+  "ruff==0.8.3",
+  "mypy==1.13.0",
+  "types-bleach==6.2.0.20241123",
+]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+extend-exclude = ["alembic/versions"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S", "ASYNC", "SIM", "RUF"]
+ignore = ["S101", "RUF001", "RUF002", "RUF003", "B008"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S105", "S106", "S108"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy"]
+ignore_missing_imports = true
+exclude = ["alembic/", "tests/"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+testpaths = ["tests"]

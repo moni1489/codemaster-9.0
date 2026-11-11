@@ -1,0 +1,22 @@
+# env / secrets
+.env
+*.local
+# caches
+.cache/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+node_modules/
+web/dist/
+web/test-results/
+web/playwright-report/
+# runtime data
+storage/*
+!storage/.gitkeep
+seed/.generated/
+pgdata/
+# raw archives (extracted copies are committed)
+docs/source/_raw/
