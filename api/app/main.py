@@ -10,6 +10,7 @@ from app.core.config import get_settings
 from app.core.db import get_engine
 from app.core.logging import configure_logging, log
 from app.media.router import router as media_router
+from app.public.router import router as public_router
 
 
 def create_app() -> FastAPI:
@@ -35,6 +36,7 @@ def create_app() -> FastAPI:
 
     app.include_router(catalog_router)
     app.include_router(media_router)
+    app.include_router(public_router)
     return app
 
 

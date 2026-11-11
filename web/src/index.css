@@ -55,3 +55,14 @@
   .cipher { @apply font-mono break-all; }
   .sr-only-focusable:not(:focus) { @apply sr-only; }
 }
+
+@layer components {
+  /* Фон главного баннера: «архивная бумага» без внешних изображений */
+  .hero-bg {
+    background:
+      radial-gradient(1200px 400px at 85% -10%, rgb(var(--c-accent) / 0.14), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, rgb(var(--c-primary) / 0.14), transparent 60%),
+      repeating-linear-gradient(0deg, rgb(var(--c-line) / 0.25) 0 1px, transparent 1px 28px),
+      rgb(var(--c-bg));
+  }
+}

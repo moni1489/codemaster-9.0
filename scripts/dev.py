@@ -33,11 +33,15 @@ def run(cmd: list[str], cwd: Path, env: dict[str, str] | None = None) -> None:
         sys.exit(res.returncode)
 
 
-def uv() -> str:
+def py() -> list[str]:
+    """Python окружения API: готовый api/.venv, иначе `uv run python`."""
+    venv = API / (".venv/Scripts/python.exe" if os.name == "nt" else ".venv/bin/python")
+    if venv.exists():
+        return [str(venv)]
     found = shutil.which("uv")
     if not found:
-        sys.exit("uv не найден: pip install uv")
-    return found
+        sys.exit("Нет api/.venv и не найден uv: pip install uv && cd api && uv sync")
+    return [found, "run", "python"]
 
 
 def api_env() -> dict[str, str]:
@@ -78,17 +82,17 @@ def cmd_env() -> None:
 
 
 def cmd_migrate() -> None:
-    run([uv(), "run", "alembic", "upgrade", "head"], API, api_env())
+    run([*py(), "-m", "alembic", "upgrade", "head"], API, api_env())
 
 
 def cmd_seed() -> None:
-    run([uv(), "run", "python", "-m", "app.seed"], API, api_env())
+    run([*py(), "-m", "app.seed"], API, api_env())
 
 
 def cmd_up() -> None:
     env = api_env()
     api = subprocess.Popen(  # noqa: S603
-        [uv(), "run", "uvicorn", "app.main:app", "--reload", "--port", "8000"], cwd=API, env=env
+        [*py(), "-m", "uvicorn", "app.main:app", "--reload", "--port", "8000"], cwd=API, env=env
     )
     web = subprocess.Popen([NPM, "run", "dev"], cwd=WEB)  # noqa: S603
     print("API: http://localhost:8000/api/docs   Сайт: http://localhost:5173", flush=True)
@@ -101,14 +105,14 @@ def cmd_up() -> None:
 
 
 def cmd_test() -> None:
-    run([uv(), "run", "pytest", "-q"], API, api_env())
+    run([*py(), "-m", "pytest", "-q"], API, api_env())
     run([NPM, "run", "test", "--silent"], WEB)
 
 
 def cmd_lint() -> None:
-    run([uv(), "run", "ruff", "check", "."], API)
-    run([uv(), "run", "ruff", "format", "--check", "."], API)
-    run([uv(), "run", "mypy", "app"], API)
+    run([*py(), "-m", "ruff", "check", "."], API)
+    run([*py(), "-m", "ruff", "format", "--check", "."], API)
+    run([*py(), "-m", "mypy", "app"], API)
     run([NPM, "run", "lint", "--silent"], WEB)
     run([NPM, "run", "typecheck", "--silent"], WEB)
 
@@ -129,6 +133,8 @@ COMMANDS = {
 }
 
 if __name__ == "__main__":
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")  # кириллица в консоли Windows
     if len(sys.argv) != 2 or sys.argv[1] not in COMMANDS:
         sys.exit(__doc__)
     COMMANDS[sys.argv[1]]()

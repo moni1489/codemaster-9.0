@@ -50,7 +50,12 @@ def rows(path: Path) -> list[tuple[str, ...]]:
             out.append((text(el),))
         elif el.tag == W + "tbl":
             for tr in el.iter(W + "tr"):
-                out.append(tuple(text(tc) for tc in tr.findall(W + "tc")))
+                # абзацы внутри ячейки — отдельные события/строки: соединяем через «; », а не вплотную
+                out.append(
+                    tuple(
+                        "; ".join(p for p in (text(par) for par in tc.iter(W + "p")) if p) for tc in tr.findall(W + "tc")
+                    )
+                )
     return out
 
 
