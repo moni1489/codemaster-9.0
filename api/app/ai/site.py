@@ -31,6 +31,7 @@ ASK = {
         r"(?:архив|филиал)\w*\s+қайда|address|where\s+is\s+the\s+(?:archive|branch)"
     ),
     "email": re.compile(r"e-?mail|(?:эл\.?|электронн\w*)\s*почт|почт[аыуе]\b|пошта|mail\b"),
+    "director": re.compile(r"директор|руководител|кто\s+руковод|басшы|director|head\s+of"),
     "hours": re.compile(
         r"режим\s+работ|график\s+работ|час\w*\s+(?:работ|приём|прием)|когда\s+(?:работа|открыт)|время\s+работ|"
         r"выходн\w*\s+дн|жұмыс\s+(?:уақыт|кесте|тәртіб)|opening\s+hours|working\s+hours|when\s+.*\bopen|schedule"
@@ -49,23 +50,27 @@ EXTRA_LABEL = {
     "kk": {"Приёмная": "Қабылдау бөлмесі", "Инспектор по кадрам": "Кадр инспекторы"},
     "en": {"Приёмная": "Reception", "Бухгалтерия": "Accounting", "Инспектор по кадрам": "HR inspector"},
 }
-# слова-связки, которые есть почти везде и только мешают ранжированию (основы по 5 букв)
-STOP_STEMS = {
-    "какой", "какая", "каком", "какие", "можно", "сколь", "скажи", "подск", "пожал", "нужно", "хочу", "этом",
-    "стои", "стоит",
-    "архив", "сайте", "сайт", "қалай", "болад", "қанда", "керек", "маған", "бола",
-    "which", "where", "what", "could", "would", "about", "there", "archi", "pleas",
+# слова-связки — есть почти в любом вопросе и только мешают ранжированию
+STOP_WORDS = {
+    "какой", "какая", "каком", "какие", "какую", "можно", "сколько", "скажи", "скажите", "подскажите", "пожалуйста",
+    "нужно", "хочу", "этом", "это", "сайт", "сайте", "сайта", "стоит", "стоят",
+    "қалай", "болады", "бола", "қандай", "керек", "маған", "бар",
+    "which", "where", "what", "could", "would", "about", "there", "please", "does", "have",
 }  # fmt: skip
+GENERIC_STEMS = {"архив", "докум", "archi", "docum"}  # встречаются на каждой странице
 LABELS = {
     "ru": {"phone": "Телефон", "address": "Адрес", "email": "Электронная почта", "hours": "Режим работы",
+           "director": "Руководитель",
            "unverified": "режим работы лучше уточнить по телефону"},
     "kk": {"phone": "Телефон", "address": "Мекенжай", "email": "Электрондық пошта", "hours": "Жұмыс уақыты",
+           "director": "Басшы",
            "unverified": "жұмыс уақытын телефон арқылы нақтылаңыз"},
-    "en": {"phone": "Phone", "address": "Address", "email": "E-mail", "hours": "Opening hours",
+    "en": {"phone": "Phone", "address": "Address", "email": "E-mail", "hours": "Opening hours", "director": "Director",
            "unverified": "please confirm the hours by phone"},
 }  # fmt: skip
 GENERIC = {"филиа", "branc", "бөлім", "архив", "госуд", "главн", "здани", "ғимар", "build", "main"}
 PRICE = re.compile(r"сколько\s+стоит|стоимост|цен[аыу]\b|прейскурант|тариф|бағасы|қанша\s+тұрады|price|cost|fee")
+BLOCK_RE = re.compile(r"</(?:p|h\d|li|tr|div|blockquote)>|<br\s*/?>", re.I)
 TAG_RE = re.compile(r"<[^>]+>")
 
 
@@ -76,6 +81,7 @@ class SiteItem:
     url: str
     faq: bool = False
     price: bool = False
+    context: str = ""  # участвует только в поиске (раздел прейскуранта и т.п.), в ответ не попадает
     score: float = 0.0
 
 
@@ -87,11 +93,15 @@ def answer_lang(query: str, lang: str) -> str:
 def _stems(text: str) -> set[str]:
     # грубый стемминг для ru/kk: первые 5 букв слова — морфология обоих языков в основном в окончаниях
     # короткие слова режем до 4 букв: «копия»/«копий» → «копи»
-    return {w[:5] if len(w) > 5 else w[:4] for w in re.findall(r"\w{4,}", normalize(text))} - STOP_STEMS
+    words = (w for w in re.findall(r"\w{4,}", normalize(text)) if w not in STOP_WORDS)
+    return {w[:5] if len(w) > 5 else w[:4] for w in words} - GENERIC_STEMS
 
 
 def _plain(body: str | None) -> str:
-    return " ".join(html.unescape(TAG_RE.sub(" ", body or "")).split())
+    # конец абзаца/заголовка/пункта — конец фразы, иначе «Основные правила Для работы…» слипаются
+    text = BLOCK_RE.sub(". ", body or "")
+    text = " ".join(html.unescape(TAG_RE.sub(" ", text)).split())
+    return re.sub(r"([.!?:;])\s*\.(?:\s*\.)*", r"\1", text).strip(". ")
 
 
 def is_info_query(query: str) -> bool:
@@ -128,7 +138,7 @@ async def contact_answer(session: AsyncSession, query: str, lang: str) -> tuple[
     lb = LABELS[lang]
     parts: list[str] = []
     spoken: list[str] = []  # вслух — без доп. номеров и почтового индекса
-    for key in asked or ["phone", "address", "email", "hours"]:
+    for key in asked or ["phone", "address", "email", "hours"]:  # «контакты» — всё, кроме руководителя
         if key == "phone" and branch.phone:
             labels = EXTRA_LABEL.get(lang, {})
             extra = "; ".join(f"{labels.get(k, k)}: {v}" for k, v in (branch.phones_extra or {}).items())
@@ -139,6 +149,9 @@ async def contact_answer(session: AsyncSession, query: str, lang: str) -> tuple[
             spoken.append(f"{lb['address']}: {re.sub(r'^\d{6},\s*', '', p.tr.address)}.")
         elif key == "email" and branch.email:
             parts.append(f"{lb['email']}: {branch.email}.")
+            spoken.append(parts[-1])
+        elif key == "director" and branch.director:
+            parts.append(f"{lb['director']}: {branch.director}.")
             spoken.append(parts[-1])
         elif key == "hours" and p.tr.hours:
             note = "" if branch.hours_verified else f" — {lb['unverified']}"
@@ -156,7 +169,9 @@ def _page_url(slug: str, lang: str) -> str:
     return f"/{lang}/{section}" + (f"/{'-'.join(rest)}" if rest else "")
 
 
-async def search_site(session: AsyncSession, query: str, lang: str, limit: int = 3) -> list[SiteItem]:
+async def search_site(
+    session: AsyncSession, query: str, lang: str, limit: int = 3, strict: bool = False
+) -> list[SiteItem]:
     """Поиск по опубликованным страницам и FAQ. ponytail: весь корпус читается на каждый запрос (десятки
     записей); если страниц станет сотни — индекс в Postgres FTS, как у каталога."""
     qs = _stems(query)
@@ -173,20 +188,26 @@ async def search_site(session: AsyncSession, query: str, lang: str, limit: int =
         # прейскурант: каждая строка — отдельная «запись», чтобы на «сколько стоит …» найти нужную цену
         currency = (page.data or {}).get("currency", "")
         for sec in (page.data or {}).get("sections") or []:
+            parent = ""  # строка без цены — заголовок для следующих («Цифровая копия …» → «формат А4: …»)
             for row in sec.get("rows") or []:
-                if row.get("price"):
-                    unit = f" ({row['unit']})" if row.get("unit") else ""
-                    items.append(
-                        SiteItem(p.tr.title, f"{row['name']}{unit}: {row['price']} {currency}.", url, price=True)
-                    )
+                if not row.get("price"):
+                    parent = row.get("name", "").rstrip(":")
+                    continue
+                unit = f" ({row['unit']})" if row.get("unit") else ""
+                name = f"{parent}: {row['name']}" if parent else row["name"]
+                text = f"{name}{unit}: {row['price']} {currency}."
+                items.append(SiteItem(p.tr.title, text, url, price=True, context=sec.get("title", "")))
     for faq in (await session.execute(select(Faq).where(Faq.workflow_status == PUBLISHED))).scalars():
         f = pick(faq.translations, lang, faq.original_lang)
         if f:
             items.append(SiteItem(f.tr.question, _plain(f.tr.answer), f"/{lang}/faq", faq=True))
     for it in items:
         title_hits = len(qs & _stems(it.title))
-        body_hits = len(qs & _stems(it.text))
-        it.score = (2 * title_hits + body_hits) / len(qs) + (1 if it.price and asks_price else 0)
+        body = _stems(f"{it.text} {it.context}")
+        body_hits = len(qs & body)
+        if strict and not qs <= body | _stems(it.title):  # запасной путь: на странице должны быть все слова вопроса
+            continue
+        it.score = (2 * title_hits + body_hits) / len(qs) + (2 if it.price and asks_price else 0)
     found = sorted((it for it in items if it.score >= 0.5), key=lambda it: it.score, reverse=True)
     return found[:limit]
 

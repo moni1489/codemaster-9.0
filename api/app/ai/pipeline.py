@@ -228,7 +228,7 @@ async def ask(session: AsyncSession, query: str, lang: str, provider: LLMProvide
     status = "restricted" if restricted else ("found" if records else "not_found")
 
     if status == "not_found":
-        items = await search_site(session, query, lang)  # 3) в каталоге пусто — может, это есть на сайте
+        items = await search_site(session, query, lang, strict=True)  # 3) в каталоге пусто — может, это на сайте
         if items:
             return await _info(query, lang, provider, items)
         text = NOT_FOUND[lang]

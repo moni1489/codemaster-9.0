@@ -16,7 +16,7 @@ interface Source {
 }
 
 interface AskResponse {
-  status: "found" | "not_found" | "restricted";
+  status: "found" | "not_found" | "restricted" | "info";
   text: string;
   speech: string;
   sources: Source[];
@@ -25,6 +25,7 @@ interface AskResponse {
   is_llm: boolean;
   degraded: boolean;
   disclaimer: string;
+  lang: Lang; // язык ответа: на казахский вопрос — казахский, даже на русской версии сайта
 }
 
 interface Turn {
@@ -197,9 +198,9 @@ export function AssistantChat({ compact = false, onNavigate }: { compact?: boole
   const Rec = serverStt ? undefined : recognitionCtor();
   const voiceAvailable = serverStt || !!Rec;
 
-  const say = (text: string) => {
+  const say = (text: string, as: Lang = lang) => {
     setSpeaking(true);
-    void speak(text, lang, !!mode.data?.tts, () => setSpeaking(false));
+    void speak(text, as, !!mode.data?.tts, () => setSpeaking(false));
   };
   const hush = () => {
     stopSpeaking();
@@ -223,7 +224,7 @@ export function AssistantChat({ compact = false, onNavigate }: { compact?: boole
       if (show && top) {
         if (voiceRef.current) say(t("voice.opening", { title: top.title }));
         open(top.url);
-      } else if (voiceRef.current) say(a.speech || a.text);
+      } else if (voiceRef.current) say(a.speech || a.text, a.lang);
     },
     onError: (e, { turn }) => {
       setTurns((ts) => ts.map((x) => (x.q === turn && !x.a ? { ...x, error: (e as Error).message } : x)));
@@ -417,7 +418,7 @@ export function AssistantChat({ compact = false, onNavigate }: { compact?: boole
               <div className="max-w-[95%] rounded-lg border border-line bg-surface p-3">
                 <p className="whitespace-pre-line">{turn.a.text}</p>
                 {(canSpeak() || mode.data?.tts) && (
-                  <button type="button" className="btn-ghost mt-2 px-3" onClick={() => (speaking ? hush() : say(turn.a!.speech || turn.a!.text))}>
+                  <button type="button" className="btn-ghost mt-2 px-3" onClick={() => (speaking ? hush() : say(turn.a!.speech || turn.a!.text, turn.a!.lang))}>
                     <Icon name={speaking ? "stop" : "volume"} size={20} />
                     {speaking ? t("voice.stopReading") : t("voice.replay")}
                   </button>
@@ -431,11 +432,13 @@ export function AssistantChat({ compact = false, onNavigate }: { compact?: boole
                         <li key={s.id}>
                           <Link to={s.url} className="block rounded-lg border border-line bg-bg px-3 py-2 no-underline hover:border-ink">
                             <span className="text-ink underline underline-offset-4">{s.title}</span>
-                            <span className="cipher mt-1 block text-sm text-muted">
-                              {s.cipher}
-                              {s.period ? ` · ${s.period}` : ""}
-                              {s.file_access !== "open" ? ` · ${t("assistant.closed")}` : ""}
-                            </span>
+                            {s.cipher && (
+                              <span className="cipher mt-1 block text-sm text-muted">
+                                {s.cipher}
+                                {s.period ? ` · ${s.period}` : ""}
+                                {s.file_access !== "open" ? ` · ${t("assistant.closed")}` : ""}
+                              </span>
+                            )}
                           </Link>
                         </li>
                       ))}
