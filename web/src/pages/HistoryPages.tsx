@@ -5,7 +5,7 @@ import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
 import { useLang, useLocalePath } from "../app/lang";
 import { useT } from "../app/useT";
 import { useTitle } from "../app/useTitle";
-import { DemoBadge, TranslationNotice } from "../components/ui/Badges";
+import { TranslationNotice } from "../components/ui/Badges";
 import { Breadcrumbs } from "../components/ui/Breadcrumbs";
 import { Icon } from "../components/ui/Icon";
 import { ErrorState, Loading } from "../components/ui/States";
@@ -29,10 +29,10 @@ export function ExhibitionsPage() {
   useTitle(t("exh.title"), t("exh.lead"));
   const q = useQuery({ queryKey: ["exhibitions", lang], queryFn: () => apiGet<Exhibition[]>("/exhibitions", lang) });
   return (
-    <div className="container-page py-6">
+    <div className="container-page py-8 sm:py-10">
       <Breadcrumbs items={[{ label: t("exh.title") }]} />
-      <h1 className="text-3xl">{t("exh.title")}</h1>
-      <p className="mt-1 text-muted">{t("exh.lead")}</p>
+      <h1>{t("exh.title")}</h1>
+      <p className="lead mt-2">{t("exh.lead")}</p>
       {q.isLoading && <Loading />}
       {q.isError && <ErrorState error={q.error} />}
       <ul className="mt-6 grid gap-5 md:grid-cols-2">
@@ -40,8 +40,8 @@ export function ExhibitionsPage() {
           <li key={e.slug} className="card overflow-hidden">
             {e.cover_url && <img src={e.cover_url} alt="" loading="lazy" className="aspect-[16/9] w-full object-cover" />}
             <div className="p-5">
-              <p className="text-sm text-muted">{e.period_from}–{e.period_to} {e.is_demo && <DemoBadge short />}</p>
-              <h2 className="mt-1 text-2xl">{e.title}</h2>
+              <p className="text-muted">{e.period_from}–{e.period_to}</p>
+              <h2 className="mt-1">{e.title}</h2>
               {e.summary && <p className="mt-2 text-muted">{e.summary}</p>}
               <Link to={lp(`/exhibitions/${e.slug}`)} className="btn-primary mt-4">{t("exh.open")}</Link>
             </div>
@@ -72,12 +72,12 @@ export function ExhibitionPage() {
     return () => window.removeEventListener("keydown", onKey);
   }, [total]);
   if (q.isLoading) return <Loading />;
-  if (q.isError || !e) return <div className="container-page py-6"><ErrorState error={q.error} /></div>;
+  if (q.isError || !e) return <div className="container-page py-8 sm:py-10"><ErrorState error={q.error} /></div>;
   const x = e.exhibits[i];
   return (
-    <div className="container-page py-6">
+    <div className="container-page py-8 sm:py-10">
       <Breadcrumbs items={[{ label: t("exh.title"), to: "/exhibitions" }, { label: e.title }]} />
-      <h1 className="text-3xl">{e.title}</h1>
+      <h1>{e.title}</h1>
       {e.summary && <p className="mt-1 max-w-3xl text-muted">{e.summary}</p>}
       <TranslationNotice info={e.translation} />
       {x && (
@@ -86,8 +86,8 @@ export function ExhibitionPage() {
             <div className="flex items-center justify-between border-b border-line px-3 py-2">
               <p className="text-sm font-medium" aria-live="polite">{t("exh.item", { n: i + 1, total })}</p>
               <div className="flex gap-1">
-                <button type="button" className="btn-ghost px-2 py-1" disabled={i === 0} onClick={() => setI(i - 1)} aria-label={t("common.prev")}><Icon name="left" size={18} /></button>
-                <button type="button" className="btn-ghost px-2 py-1" disabled={i >= total - 1} onClick={() => setI(i + 1)} aria-label={t("common.next")}><Icon name="right" size={18} /></button>
+                <button type="button" className="btn-ghost btn-icon" disabled={i === 0} onClick={() => setI(i - 1)} aria-label={t("common.prev")}><Icon name="left" size={18} /></button>
+                <button type="button" className="btn-ghost btn-icon" disabled={i >= total - 1} onClick={() => setI(i + 1)} aria-label={t("common.next")}><Icon name="right" size={18} /></button>
               </div>
             </div>
             <div className="h-[60vh] min-h-[300px] bg-surface-2">
@@ -96,12 +96,12 @@ export function ExhibitionPage() {
                   {({ zoomIn, zoomOut, resetTransform }) => (
                     <>
                       <div className="absolute z-10 m-2 flex gap-1">
-                        <button type="button" className="btn-ghost bg-surface px-2 py-1" onClick={() => zoomIn()} aria-label={t("viewer.zoomIn")}><Icon name="zoomIn" size={16} /></button>
-                        <button type="button" className="btn-ghost bg-surface px-2 py-1" onClick={() => zoomOut()} aria-label={t("viewer.zoomOut")}><Icon name="zoomOut" size={16} /></button>
-                        <button type="button" className="btn-ghost bg-surface px-2 py-1" onClick={() => resetTransform()} aria-label={t("viewer.reset")}><Icon name="reset" size={16} /></button>
+                        <button type="button" className="btn-ghost btn-icon" onClick={() => zoomIn()} aria-label={t("viewer.zoomIn")}><Icon name="zoomIn" size={16} /></button>
+                        <button type="button" className="btn-ghost btn-icon" onClick={() => zoomOut()} aria-label={t("viewer.zoomOut")}><Icon name="zoomOut" size={16} /></button>
+                        <button type="button" className="btn-ghost btn-icon" onClick={() => resetTransform()} aria-label={t("viewer.reset")}><Icon name="reset" size={16} /></button>
                       </div>
                       <TransformComponent wrapperStyle={{ width: "100%", height: "100%" }} contentStyle={{ width: "100%", height: "100%" }}>
-                        <img src={x.image_url ?? ""} alt={x.caption} className="h-full w-full object-contain" />
+                        <img src={x.image_url ?? ""} alt={x.caption} className="h-full w-full object-contain" data-keep />
                       </TransformComponent>
                     </>
                   )}
@@ -110,7 +110,7 @@ export function ExhibitionPage() {
             </div>
           </div>
           <div className="space-y-3">
-            <h2 className="text-2xl">{x.caption}</h2>
+            <h2>{x.caption}</h2>
             {x.description && <p className="leading-relaxed">{x.description}</p>}
             {x.translation.is_fallback && <TranslationNotice info={x.translation} />}
             <dl className="card space-y-2 p-4 text-sm">
@@ -122,7 +122,7 @@ export function ExhibitionPage() {
           </div>
         </section>
       )}
-      <h2 className="mt-8 text-xl">{t("exh.list")}</h2>
+      <h2 className="mt-8">{t("exh.list")}</h2>
       <ol className="mt-3 flex gap-2 overflow-x-auto pb-2">
         {e.exhibits.map((ex, n) => (
           <li key={ex.id}>
@@ -154,18 +154,18 @@ export function HistoryPage() {
     queryFn: () => apiGet<EventT[]>("/history/timeline", lang, { topic, year_from: /^\d{4}$/.test(from) ? from : undefined, year_to: /^\d{4}$/.test(to) ? to : undefined }),
   });
   return (
-    <div className="container-page py-6">
+    <div className="container-page py-8 sm:py-10">
       <Breadcrumbs items={[{ label: t("hist.title") }]} />
-      <h1 className="text-3xl">{t("hist.title")}</h1>
-      <p className="mt-1 text-muted">{t("hist.lead")}</p>
+      <h1>{t("hist.title")}</h1>
+      <p className="lead mt-2">{t("hist.lead")}</p>
 
       <section className="mt-8" aria-labelledby="col-h">
-        <h2 id="col-h" className="text-2xl">{t("hist.collections")}</h2>
+        <h2 id="col-h">{t("hist.collections")}</h2>
         {cols.isLoading && <Loading />}
         <div className="mt-4 grid grid-cols-1 gap-5 lg:grid-cols-3">
           {cols.data?.map((c) => (
             <article key={c.slug} className="card p-5">
-              <h3 className="text-xl">{c.title} {c.is_demo && <DemoBadge short />}</h3>
+              <h3>{c.title}</h3>
               {c.summary && <p className="mt-2 text-sm text-muted">{c.summary}</p>}
               {c.editorial_note && <p className="mt-3 rounded border-l-4 border-accent bg-surface-2 p-2 text-xs"><strong>{t("hist.editorial")}:</strong> {c.editorial_note}</p>}
               <h4 className="mt-3 text-sm font-semibold">{t("hist.documents")}</h4>
@@ -191,7 +191,7 @@ export function HistoryPage() {
       </section>
 
       <section className="mt-10" aria-labelledby="tl-h">
-        <h2 id="tl-h" className="text-2xl">{t("hist.timeline")}</h2>
+        <h2 id="tl-h">{t("hist.timeline")}</h2>
         <div className="mt-3 flex flex-wrap gap-2">
           <select className="input w-44" aria-label={t("hist.topic")} value={topic} onChange={(e) => setTopic(e.target.value)}>
             <option value="">{t("hist.topic")}: {t("common.all")}</option>
@@ -209,7 +209,7 @@ export function HistoryPage() {
               <p className="font-medium">{ev.title}</p>
               <p className="mt-1 flex flex-wrap gap-1 text-xs">
                 <span className="badge border-line">{t(`hist.topics.${ev.topic}`)}</span>
-                {!ev.date_verified && <span className="badge border-warn/60 text-warn">⚠ {t("hist.unverifiedDate")}</span>}
+                {!ev.date_verified && <span className="badge border-warn/60 text-warn">{t("hist.unverifiedDate")}</span>}
                 {ev.is_editorial && <span className="badge border-accent/60 text-accent">{t("hist.interpretation")}</span>}
                 {ev.place && <span className="text-muted">{ev.place}</span>}
               </p>

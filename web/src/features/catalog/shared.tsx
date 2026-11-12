@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useT } from "../../app/useT";
 import { Link } from "react-router-dom";
 import { useLocalePath } from "../../app/lang";
-import { AccessBadge, DemoBadge, UnverifiedBadge } from "../../components/ui/Badges";
+import { AccessBadge } from "../../components/ui/Badges";
 import { Icon } from "../../components/ui/Icon";
 import type { DocumentListItem } from "../../lib/types";
 
@@ -13,12 +13,11 @@ export function yearsLabel(from: number | null, to: number | null): string {
 }
 
 export function DocumentRow({ item }: { item: DocumentListItem }) {
-  const { t } = useT();
   const lp = useLocalePath();
   const period = item.period_label || yearsLabel(item.year_from, item.year_to);
   return (
-    <article className="card flex gap-4 p-4 transition-shadow hover:shadow-md">
-      <div className="hidden h-24 w-28 shrink-0 overflow-hidden rounded-lg border border-line bg-surface-2 sm:block">
+    <article className="card-hit flex gap-4 p-4">
+      <div className="lv-img h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-surface-2 sm:h-24 sm:w-28">
         {item.thumb_url ? (
           <img src={item.thumb_url} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
         ) : (
@@ -28,26 +27,16 @@ export function DocumentRow({ item }: { item: DocumentListItem }) {
         )}
       </div>
       <div className="min-w-0 flex-1">
-        <h3 className="font-serif text-lg leading-snug">
-          <Link to={lp(`/catalog/documents/${item.id}`)} className="text-ink hover:text-primary">
+        <h3 className="text-lg leading-snug">
+          <Link to={lp(`/catalog/documents/${item.id}`)} className="hit">
             {item.title}
           </Link>
         </h3>
-        <p className="cipher mt-1 text-xs text-muted">{item.cipher}</p>
-        {item.summary && <p className="mt-2 line-clamp-2 text-sm">{item.summary}</p>}
-        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-          {period && <span className="badge border-line text-ink">{period}</span>}
-          <span className="badge border-line text-ink">{t(`docTypes.${item.doc_type}`)}</span>
+        <p className="cipher mt-1 text-sm text-muted">{item.cipher}</p>
+        {item.summary && <p className="mt-2 line-clamp-2">{item.summary}</p>}
+        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
+          {period && <span className="font-medium">{period}</span>}
           <AccessBadge access={item.file_access} />
-          {!item.date_verified && <UnverifiedBadge label={t("catalog.unverifiedDate")} />}
-          {item.is_personal_fund && <span className="badge border-accent/50 text-accent">{t("doc.personalFund")}</span>}
-          {item.branch && <span className="text-muted">{item.branch.name}</span>}
-          {item.is_demo && <DemoBadge short />}
-          {item.translation.is_fallback && (
-            <span className="badge border-line text-muted" title={t("translation.fallback", { lang: item.translation.lang })}>
-              {item.translation.lang.toUpperCase()}
-            </span>
-          )}
         </div>
       </div>
     </article>
@@ -60,7 +49,7 @@ export function Pagination({ page, pages, onPage }: { page: number; pages: numbe
   const nums = Array.from(new Set([1, page - 1, page, page + 1, pages])).filter((n) => n >= 1 && n <= pages);
   return (
     <nav aria-label={t("catalog.pagination")} className="mt-6 flex flex-wrap items-center justify-center gap-1">
-      <button type="button" className="btn-ghost" disabled={page <= 1} onClick={() => onPage(page - 1)}>
+      <button type="button" className="btn-ghost btn-icon" disabled={page <= 1} onClick={() => onPage(page - 1)}>
         <Icon name="left" size={16} />
         <span className="sr-only">{t("common.prev")}</span>
       </button>
@@ -69,7 +58,7 @@ export function Pagination({ page, pages, onPage }: { page: number; pages: numbe
           {i > 0 && n - (nums[i - 1] ?? n) > 1 && <span aria-hidden="true">…</span>}
           <button
             type="button"
-            className={n === page ? "btn-primary" : "btn-ghost"}
+            className={`${n === page ? "btn-primary" : "btn-ghost"} btn-icon`}
             aria-current={n === page ? "page" : undefined}
             onClick={() => onPage(n)}
           >
@@ -77,7 +66,7 @@ export function Pagination({ page, pages, onPage }: { page: number; pages: numbe
           </button>
         </span>
       ))}
-      <button type="button" className="btn-ghost" disabled={page >= pages} onClick={() => onPage(page + 1)}>
+      <button type="button" className="btn-ghost btn-icon" disabled={page >= pages} onClick={() => onPage(page + 1)}>
         <Icon name="right" size={16} />
         <span className="sr-only">{t("common.next")}</span>
       </button>
@@ -103,7 +92,7 @@ export function CopyButton({ text, label }: { text: string; label: string }) {
   return (
     <button
       type="button"
-      className="btn-ghost px-2 py-1 text-xs"
+      className="btn-ghost"
       onClick={async () => {
         if (await copyText(text)) {
           setDone(true);
@@ -139,7 +128,7 @@ export function ShareButton({ title }: { title: string }) {
     }
   };
   return (
-    <button type="button" className="btn-ghost px-2 py-1 text-xs" onClick={share}>
+    <button type="button" className="btn-ghost" onClick={share}>
       <Icon name={done ? "check" : "share"} size={14} />
       {done ? t("common.linkCopied") : t("common.share")}
     </button>

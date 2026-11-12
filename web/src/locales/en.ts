@@ -6,6 +6,39 @@ const en: Dict = {
     full: "State Archive of East Kazakhstan Region (municipal state institution), Department of Digitalization and Archives of East Kazakhstan Region",
     tagline: "A digital space for the region's archival memory",
   },
+  lv: {
+    toggle: "Low vision version",
+    short: "Low vision",
+    off: "Standard version",
+    panel: "Low vision settings",
+    fontSize: "Text size",
+    fs1: "Large",
+    fs2: "Larger",
+    fs3: "Largest",
+    colors: "Colours",
+    bw: "Black on white",
+    wb: "White on black",
+    blue: "Dark blue on light blue",
+    images: "Images",
+    imgOn: "Show",
+    imgOff: "Hide",
+    spacing: "Spacing",
+    normal: "Normal",
+    wide: "Wide"
+  },
+  voice: {
+    replay: "Read the answer aloud",
+    speak: "Ask by voice",
+    listening: "Listening… Please speak",
+    stop: "Stop",
+    readAloud: "Read answers aloud",
+    stopReading: "Stop reading",
+    hint: "Tap the microphone and say what you are looking for. The assistant will answer aloud.",
+    unsupported: "This browser cannot recognise speech. Type your question below.",
+    denied: "No access to the microphone. Allow it in the browser settings.",
+    heroAsk: "Not sure where to look? Ask by voice",
+    heard: "You said"
+  },
   a11y: {
     footerNav: "Site sections",
     skip: "Skip to content",
@@ -35,6 +68,7 @@ const en: Dict = {
     assistant: "AI assistant",
   },
   header: {
+    menu: "Menu",
     searchPlaceholder: "Search the catalogue: fonds, reference code, topic, place…",
     search: "Search",
     catalogButton: "Online catalogue",
@@ -91,6 +125,7 @@ const en: Dict = {
     langName: { kk: "Kazakh", ru: "Russian", en: "English" },
   },
   home: {
+    searchPlaceholder: "Town, surname, year or topic",
     heroLead: "Documents and photographs on the region's history since 1940. Searching the catalogue is free.",
     tasksTitle: "How we can help",
     tasks: {
@@ -345,6 +380,7 @@ const en: Dict = {
     error: "Could not send feedback. Please check the text and try again.",
   },
   assistant: {
+    short: "Assistant",
     title: "AI assistant",
     open: "Open AI assistant",
     close: "Minimise assistant",

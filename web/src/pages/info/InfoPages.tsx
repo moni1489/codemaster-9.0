@@ -32,7 +32,7 @@ export function AttachmentList({ items, title }: { items: Attachment[]; title?: 
   if (!items.length) return null;
   return (
     <section className="mt-8" aria-labelledby="attachments-h">
-      <h2 id="attachments-h" className="text-xl">
+      <h2 id="attachments-h">
         {title ?? t("info.documents")}
       </h2>
       <ul className="mt-3 grid gap-2 md:grid-cols-2">
@@ -45,7 +45,7 @@ export function AttachmentList({ items, title }: { items: Attachment[]; title?: 
                   <span className="block text-ink">{a.title}</span>
                   <span className="text-xs text-muted">{new URL(a.url).hostname}</span>
                   {!a.verified && (
-                    <span className="mt-1 block text-xs text-warn">⚠ {t("info.unverifiedLink")}</span>
+                    <span className="mt-1 block text-xs text-warn">{t("info.unverifiedLink")}</span>
                   )}
                 </span>
               </ExternalLink>
@@ -86,7 +86,7 @@ function SectionNav({ section, current }: { section: Section; current: string })
       : [];
   return (
     <nav aria-label={t("info.inSection")} className="card p-3">
-      <p className="px-2 pb-2 text-sm font-semibold text-muted">{t(SECTION_NAV_KEY[section])}</p>
+      <p className="px-3 pb-2 font-semibold text-muted">{t(SECTION_NAV_KEY[section])}</p>
       <ul className="space-y-1">
         {(q.data ?? []).map((p) => (
           <li key={p.slug}>
@@ -94,7 +94,7 @@ function SectionNav({ section, current }: { section: Section; current: string })
               to={lp(routeFor(p.slug))}
               end
               aria-current={p.slug === current ? "page" : undefined}
-              className={`block rounded-md px-2 py-1.5 text-sm no-underline ${p.slug === current ? "bg-primary/10 font-medium text-primary" : "text-ink hover:bg-surface-2"}`}
+              className={`flex min-h-11 items-center rounded-md px-3 py-2 no-underline ${p.slug === current ? "bg-primary/10 font-semibold text-primary" : "text-ink hover:bg-surface"}`}
             >
               {p.title}
             </NavLink>
@@ -102,7 +102,7 @@ function SectionNav({ section, current }: { section: Section; current: string })
         ))}
         {extra.map((e) => (
           <li key={e.to}>
-            <Link to={lp(e.to)} className="block rounded-md px-2 py-1.5 text-sm text-ink no-underline hover:bg-surface-2">
+            <Link to={lp(e.to)} className="flex min-h-11 items-center rounded-md px-3 py-2 text-ink no-underline hover:bg-surface">
               {e.title}
             </Link>
           </li>
@@ -115,7 +115,7 @@ function SectionNav({ section, current }: { section: Section; current: string })
 export function NoOrdersBanner({ variant = "price" }: { variant?: "price" | "applications" }) {
   const { t } = useT();
   return (
-    <div role="note" className="flex gap-3 rounded-xl border-2 border-warn/60 bg-warn/10 p-4">
+    <div role="note" className="note">
       <Icon name="info" size={24} className="shrink-0 text-warn" />
       <div>
         <p className="font-semibold">{t("info.noOrdersBanner")}</p>
@@ -130,7 +130,7 @@ function PriceBlock({ data }: { data: PriceData }) {
   const lang = useLang();
   return (
     <section className="mt-8" aria-labelledby="price-h">
-      <h2 id="price-h" className="text-2xl">
+      <h2 id="price-h">
         {t("info.priceExtract")}
       </h2>
       <div className="card mt-3 p-4 text-sm">
@@ -148,7 +148,7 @@ function PriceBlock({ data }: { data: PriceData }) {
       </p>
       {data.sections.map((s) => (
         <div key={s.no} className="mt-6">
-          <h3 className="text-xl">
+          <h3>
             {s.no}. {s.title}
           </h3>
           <div className="mt-2 overflow-x-auto rounded-xl border border-line">
@@ -179,7 +179,7 @@ function PriceBlock({ data }: { data: PriceData }) {
           {s.footnote && <p className="mt-2 text-sm text-muted">{s.footnote}</p>}
         </div>
       ))}
-      <h3 className="mt-8 text-xl">{t("info.priceOther")}</h3>
+      <h3 className="mt-8">{t("info.priceOther")}</h3>
       <ul className="mt-2 space-y-1 text-sm">
         {data.other_sections.map((o) => (
           <li key={o.no}>
@@ -200,7 +200,7 @@ function LegalTable({ acts }: { acts: LegalAct[] }) {
       ) : (
         <ExternalLink href={a.url}>{new URL(a.url).hostname}</ExternalLink>
       )}
-      {!a.verified && <span className="mt-1 block text-xs text-warn">⚠ {t("info.unverifiedLink")}</span>}
+      {!a.verified && <span className="mt-1 block text-xs text-warn">{t("info.unverifiedLink")}</span>}
       {a.note && <span className="mt-1 block text-xs text-muted">{a.note}</span>}
     </>
   );
@@ -236,7 +236,7 @@ function LegalTable({ acts }: { acts: LegalAct[] }) {
                 ) : (
                   <ExternalLink href={a.url}>{new URL(a.url).hostname}</ExternalLink>
                 )}
-                {!a.verified && <span className="mt-1 block text-xs text-warn">⚠ {t("info.unverifiedLink")}</span>}
+                {!a.verified && <span className="mt-1 block text-xs text-warn">{t("info.unverifiedLink")}</span>}
                 {a.note && <span className="mt-1 block text-xs text-muted">{a.note}</span>}
               </td>
             </tr>
@@ -269,7 +269,7 @@ export function InfoPage({ section }: { section: Section }) {
   const isState = slug === "services-state";
 
   return (
-    <div className="container-page py-6">
+    <div className="container-page py-8 sm:py-10">
       <Breadcrumbs items={crumbs} />
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[16rem_1fr]">
         <aside className="order-2 lg:order-1">
@@ -281,7 +281,7 @@ export function InfoPage({ section }: { section: Section }) {
           {page && (
             <>
               <header className="space-y-3">
-                <h1 className="text-3xl leading-tight">{page.title}</h1>
+                <h1>{page.title}</h1>
                 <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
                   {page.actualized_at && <span>{t("info.actualized", { date: formatDate(page.actualized_at, lang) })}</span>}
                   {page.is_demo && <DemoBadge />}
@@ -327,10 +327,10 @@ export function SectionHub({ section }: { section: "services" | "visitors" }) {
         ]
       : [];
   return (
-    <div className="container-page py-6">
+    <div className="container-page py-8 sm:py-10">
       <Breadcrumbs items={[{ label: t(SECTION_NAV_KEY[section]) }]} />
-      <h1 className="text-3xl">{title}</h1>
-      <p className="mt-2 max-w-3xl text-muted">{lead}</p>
+      <h1>{title}</h1>
+      <p className="lead mt-2">{lead}</p>
       {section === "services" && (
         <div className="mt-6 max-w-3xl">
           <NoOrdersBanner variant="applications" />
@@ -341,8 +341,8 @@ export function SectionHub({ section }: { section: "services" | "visitors" }) {
       <ul className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {[...(q.data ?? []).map((p) => ({ to: routeFor(p.slug), title: p.title })), ...extra].map((c) => (
           <li key={c.to}>
-            <Link to={lp(c.to)} className="card flex h-full items-center justify-between gap-3 p-5 text-ink no-underline hover:border-primary">
-              <span className="font-serif text-lg">{c.title}</span>
+            <Link to={lp(c.to)} className="card-link flex h-full min-h-[5rem] items-center justify-between gap-3 p-5">
+              <span className="text-lg font-semibold leading-snug">{c.title}</span>
               <Icon name="right" />
             </Link>
           </li>
@@ -363,10 +363,10 @@ export function MemorialDatesPage() {
     queryFn: () => apiGet<MemorialDate[]>("/memorial-dates", lang, { year, month: month || undefined }),
   });
   return (
-    <div className="container-page py-6">
+    <div className="container-page py-8 sm:py-10">
       <Breadcrumbs items={[{ label: t("nav.visitors"), to: "/visitors" }, { label: t("info.memorialTitle") }]} />
-      <h1 className="text-3xl">{t("info.memorialTitle")}</h1>
-      <p className="mt-2 max-w-3xl text-muted">{t("info.memorialLead")}</p>
+      <h1>{t("info.memorialTitle")}</h1>
+      <p className="lead mt-2">{t("info.memorialLead")}</p>
       <div className="mt-5 flex flex-wrap gap-3">
         <label className="text-sm">
           <span className="mb-1 block font-medium">{t("info.year")}</span>

@@ -18,26 +18,23 @@ import type { NewsItem, NewsList, NewsOut } from "../lib/types";
 const CATEGORIES = ["news", "exhibition", "conference", "event", "research", "branch"] as const;
 
 export function NewsCard({ item }: { item: NewsItem }) {
-  const { t } = useT();
   const lang = useLang();
   const lp = useLocalePath();
   return (
-    <article className="card flex h-full flex-col overflow-hidden">
-      <div className="aspect-[16/9] bg-surface-2">
-        {item.cover_url && <img src={item.cover_url} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />}
+    <article className="card-hit flex h-full flex-col overflow-hidden">
+      <div className="photo aspect-[16/9]">
+        {item.cover_url && <img src={item.cover_url} alt="" loading="lazy" decoding="async" />}
       </div>
       <div className="flex flex-1 flex-col p-4">
-        <p className="flex flex-wrap items-center gap-2 text-xs text-muted">
-          <span className="badge border-line">{t(`newsPage.categories.${item.category}`)}</span>
+        <p className="text-muted">
           {item.published_at && <time dateTime={item.published_at}>{formatDate(item.published_at, lang)}</time>}
-          {item.is_demo && <DemoBadge short />}
         </p>
-        <h3 className="mt-2 font-serif text-lg leading-snug">
-          <Link to={lp(`/news/${item.slug}`)} className="text-ink hover:text-primary">
+        <h3 className="mt-2 text-lg leading-snug">
+          <Link to={lp(`/news/${item.slug}`)} className="hit">
             {item.title}
           </Link>
         </h3>
-        {item.lead && <p className="mt-2 line-clamp-3 text-sm text-muted">{item.lead}</p>}
+        {item.lead && <p className="mt-2 text-muted">{item.lead}</p>}
       </div>
     </article>
   );
@@ -70,9 +67,9 @@ export function NewsListPage() {
     set("q", q.trim() || null);
   };
   return (
-    <div className="container-page py-6">
+    <div className="container-page py-8 sm:py-10">
       <Breadcrumbs items={[{ label: t("newsPage.title") }]} />
-      <h1 className="text-3xl">{t("newsPage.title")}</h1>
+      <h1>{t("newsPage.title")}</h1>
       <div className="mt-4 flex flex-wrap items-center gap-3">
         <form role="search" onSubmit={submit} className="flex min-w-[16rem] flex-1 gap-2">
           <label htmlFor="news-q" className="sr-only">{t("newsPage.search")}</label>
@@ -126,12 +123,12 @@ export function NewsDetailPage() {
   if (q.isLoading) return <Loading />;
   if (q.isError || !n)
     return (
-      <div className="container-page py-6">
+      <div className="container-page py-8 sm:py-10">
         <ErrorState error={q.error} />
       </div>
     );
   return (
-    <div className="container-page py-6">
+    <div className="container-page py-8 sm:py-10">
       <Breadcrumbs items={[{ label: t("newsPage.title"), to: "/news" }, { label: n.title }]} />
       <article className="max-w-3xl">
         <p className="flex flex-wrap items-center gap-2 text-sm text-muted">
@@ -139,7 +136,7 @@ export function NewsDetailPage() {
           {n.published_at && <time dateTime={n.published_at}>{formatDate(n.published_at, lang)}</time>}
           {n.is_demo && <DemoBadge />}
         </p>
-        <h1 className="mt-2 text-3xl leading-tight">{n.title}</h1>
+        <h1 className="mt-2">{n.title}</h1>
         <div className="mt-3 flex flex-wrap gap-2">
           <ShareButton title={n.title} />
         </div>
@@ -157,7 +154,7 @@ export function NewsDetailPage() {
       </article>
       {n.related.length > 0 && (
         <section className="mt-10" aria-labelledby="related-h">
-          <h2 id="related-h" className="text-2xl">{t("newsPage.related")}</h2>
+          <h2 id="related-h">{t("newsPage.related")}</h2>
           <ul className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {n.related.map((r) => (
               <li key={r.id}>
@@ -167,7 +164,9 @@ export function NewsDetailPage() {
           </ul>
         </section>
       )}
-      <Link to={lp("/news")} className="mt-8 inline-block">← {t("newsPage.back")}</Link>
+      <Link to={lp("/news")} className="btn-ghost mt-10">
+        <Icon name="left" size={18} /> {t("newsPage.back")}
+      </Link>
     </div>
   );
 }

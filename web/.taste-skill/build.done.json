@@ -1,0 +1,10 @@
+{
+ "page": null,
+ "dir": "/Users/sofiya/CoShip/codemaster90/codemaster-9.0/web",
+ "kind": "service",
+ "start": "2026-11-12T11:01:51.038Z",
+ "by": "start.mjs",
+ "url": "http://localhost:5173/ru",
+ "category": "государственный архив: каталог документов, справки",
+ "primary": "Найти документ"
+}

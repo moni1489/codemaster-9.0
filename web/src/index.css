@@ -77,7 +77,7 @@
   .btn-ghost { @apply btn border border-line bg-bg text-ink hover:bg-surface; }
   .btn-icon { @apply min-w-12 px-0; }
   .btn-lg { @apply min-h-14 px-8 text-lg; }
-  .chip { @apply inline-flex min-h-11 items-center rounded-full border border-line bg-bg px-4 text-ink no-underline transition-colors hover:border-ink; }
+  .chip { @apply inline-flex min-h-11 items-center rounded-xl border border-line bg-bg px-4 text-ink no-underline transition-colors hover:border-ink; }
   .badge { @apply inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-sm font-medium leading-snug; }
   .input { @apply min-h-12 w-full rounded-lg border border-ink/30 bg-bg px-4 py-2 text-[1rem] text-ink placeholder:text-muted; }
   .input-lg { @apply min-h-14 text-lg; }
@@ -125,3 +125,32 @@
 
 /* Leaflet: подписи и кнопки читаемы */
 .leaflet-container { font: inherit; }
+
+/* ── Версия для слабовидящих (src/app/lowVision.ts) ── */
+:root[data-lv-fs="1"] { font-size: 21px; }
+:root[data-lv-fs="2"] { font-size: 24px; }
+:root[data-lv-fs="3"] { font-size: 28px; }
+:root[data-lv-scheme="bw"] {
+  --c-bg: 255 255 255; --c-surface: 255 255 255; --c-surface-2: 238 238 238; --c-line: 0 0 0;
+  --c-ink: 0 0 0; --c-muted: 0 0 0; --c-primary: 0 0 0; --c-primary-ink: 255 255 255; --c-accent: 0 0 0;
+  --c-danger: 0 0 0; --c-ok: 0 0 0; --c-warn: 0 0 0; color-scheme: light;
+}
+:root[data-lv-scheme="wb"] {
+  --c-bg: 0 0 0; --c-surface: 0 0 0; --c-surface-2: 30 30 30; --c-line: 255 255 255;
+  --c-ink: 255 255 255; --c-muted: 255 255 255; --c-primary: 255 255 255; --c-primary-ink: 0 0 0; --c-accent: 255 255 255;
+  --c-danger: 255 255 255; --c-ok: 255 255 255; --c-warn: 255 255 255; color-scheme: dark;
+}
+:root[data-lv-scheme="blue"] {
+  --c-bg: 157 209 255; --c-surface: 157 209 255; --c-surface-2: 130 190 245; --c-line: 6 52 98;
+  --c-ink: 6 52 98; --c-muted: 6 52 98; --c-primary: 6 52 98; --c-primary-ink: 157 209 255; --c-accent: 6 52 98;
+  --c-danger: 6 52 98; --c-ok: 6 52 98; --c-warn: 6 52 98; color-scheme: light;
+}
+:root[data-lv] .card, :root[data-lv] .card-link, :root[data-lv] .card-hit, :root[data-lv] .input, :root[data-lv] .btn-ghost, :root[data-lv] .chip { border-width: 2px; border-color: rgb(var(--c-ink)); }
+:root[data-lv] a { text-decoration-thickness: 2px; }
+:root[data-lv] :focus-visible { outline-width: 4px; outline-offset: 3px; }
+:root[data-lv] *, :root[data-lv] *::before, :root[data-lv] *::after { animation: none !important; transition: none !important; }
+:root[data-lv-ls="wide"] body { letter-spacing: 0.08em; word-spacing: 0.16em; }
+:root[data-lv-img="off"] img:not([data-keep]):not(.leaflet-tile), :root[data-lv-img="off"] .photo, :root[data-lv-img="off"] .lv-img { display: none !important; }
+:root[data-lv] .hero-band { background: rgb(var(--c-bg)); color: rgb(var(--c-ink)); border-bottom: 2px solid rgb(var(--c-ink)); }
+:root[data-lv] .hero-band a { color: rgb(var(--c-ink)); }
+:root .hero-band :focus-visible { outline-color: rgb(var(--c-primary-ink)); outline-offset: 3px; }

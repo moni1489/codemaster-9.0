@@ -20,3 +20,6 @@ seed/.generated/
 pgdata/
 # raw archives (extracted copies are committed)
 docs/source/_raw/
+# taste-skill: профиль браузера и скриншоты проверок
+web/.taste-skill/chrome-*/
+web/shots/

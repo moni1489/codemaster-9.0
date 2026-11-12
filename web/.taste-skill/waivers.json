@@ -1,0 +1,7 @@
+[
+  { "check": "street-number", "target": "application/ld+json", "reason": "real public address of the state archive from the client's own contacts document (docs/source), required on a government site" },
+  { "check": "postcode", "target": "application/ld+json", "reason": "real postcode of the state archive from the client's contacts document, part of its official address" },
+  { "check": "phone-number", "target": "tel:87232255976", "reason": "real reception phone of the archive from the client's contacts document; elderly visitors must be able to call" },
+  { "check": "phone-number", "target": "+7 7232 25-59-76", "reason": "real reception phone in the archive's schema.org record, taken from the client's contacts document" },
+  { "check": "nav-covers", "target": "Помощник", "reason": "the user asked for a highly discoverable assistant; the floating button is fixed bottom-right and the footer reserves space under it" }
+]

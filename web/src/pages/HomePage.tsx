@@ -4,8 +4,8 @@ import { useT } from "../app/useT";
 import { Link, useNavigate } from "react-router-dom";
 import { useLang, useLocalePath } from "../app/lang";
 import { useTitle } from "../app/useTitle";
-import { DemoBadge, TranslationNotice } from "../components/ui/Badges";
-import { Icon, type IconName } from "../components/ui/Icon";
+import { TranslationNotice } from "../components/ui/Badges";
+import { Icon } from "../components/ui/Icon";
 import { Loading } from "../components/ui/States";
 import { yearsLabel } from "../features/catalog/shared";
 import { apiGet } from "../lib/api";
@@ -21,14 +21,14 @@ const EXAMPLES = {
   en: ["Oskemen photo", "Ridder", "newspaper 1945", "Great Patriotic War"],
 } as const;
 
-const TASKS: { key: string; to: string; icon: IconName }[] = [
-  { key: "catalog", to: "/catalog", icon: "search" },
-  { key: "certificate", to: "/services/state", icon: "doc" },
-  { key: "paid", to: "/services/paid", icon: "copy" },
-  { key: "reading", to: "/visitors/reading-room", icon: "clock" },
-  { key: "branches", to: "/branches", icon: "pin" },
-  { key: "assistant", to: "/assistant", icon: "chat" },
-  { key: "faq", to: "/faq", icon: "help" },
+const TASKS: { key: string; to: string }[] = [
+  { key: "catalog", to: "/catalog" },
+  { key: "certificate", to: "/services/state" },
+  { key: "paid", to: "/services/paid" },
+  { key: "reading", to: "/visitors/reading-room" },
+  { key: "branches", to: "/branches" },
+  { key: "assistant", to: "/assistant" },
+  { key: "faq", to: "/faq" },
 ];
 
 /** Заголовок секции: h2 слева, ссылка «все» справа (на телефоне — под заголовком). */
@@ -58,56 +58,63 @@ function Hero() {
     go(q.trim());
   };
   return (
-    <section className="border-b border-line" aria-labelledby="hero-title" data-enter>
-      <div className="container-page grid items-center gap-8 py-8 sm:py-12 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-12 lg:py-16">
+    <section className="hero-band bg-primary text-primary-ink" aria-labelledby="hero-title" data-enter>
+      <div className="container-page grid items-center gap-10 py-10 sm:py-14 lg:grid-cols-[minmax(0,7fr)_minmax(0,4fr)] lg:py-16">
         <div>
-          <h1 id="hero-title" className="text-[1.625rem] sm:text-[2.5rem] lg:text-[2.875rem]">
+          <h1 id="hero-title" className="text-[1.75rem] sm:text-[2.5rem] lg:text-[2.75rem]">
             {t("home.heroTitle")}
           </h1>
-          <p className="lead mt-4">{t("home.heroLead")}</p>
-          <form role="search" onSubmit={submit} className="mt-8">
+          <p className="mt-4 max-w-2xl text-lg opacity-90">{t("home.heroLead")}</p>
+          <form role="search" onSubmit={submit} className="mt-8 max-w-2xl">
             <label htmlFor="hero-q" className="mb-3 block text-lg font-semibold">
               {t("home.quickSearch")}
             </label>
-            <div className="flex flex-col gap-3 sm:flex-row">
+            <div className="flex">
               <input
                 id="hero-q"
                 type="search"
-                className="input input-lg"
-                placeholder={t("catalog.queryPlaceholder")}
+                className="min-h-14 w-full min-w-0 rounded-l-lg border-0 bg-white px-4 text-lg text-black placeholder:text-neutral-600 focus-visible:outline-white"
+                placeholder={t("home.searchPlaceholder")}
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 maxLength={300}
                 enterKeyHint="search"
               />
-              <button type="submit" className="btn-primary btn-lg">
-                <Icon name="search" size={22} />
-                {t("header.search")}
+              <button
+                type="submit"
+                className="inline-flex min-h-14 min-w-14 shrink-0 items-center justify-center gap-2 rounded-r-lg bg-ink px-4 text-lg font-semibold text-bg hover:opacity-90 sm:px-6"
+              >
+                <Icon name="search" size={24} />
+                <span className="sr-only sm:not-sr-only">{t("header.search")}</span>
               </button>
             </div>
           </form>
-          <div className="mt-5">
-            <p className="text-muted">{t("home.examples")}</p>
-            <ul className="mt-2 flex flex-wrap gap-2">
-              {EXAMPLES[lang].map((ex) => (
-                <li key={ex}>
-                  <button type="button" className="chip" onClick={() => go(ex)}>
-                    {ex}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
+          <p className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2">
+            <span className="opacity-90">{t("home.examples")}</span>
+            {EXAMPLES[lang].map((ex) => (
+              <button key={ex} type="button" className="min-h-11 text-left font-medium underline underline-offset-4 hover:decoration-2" onClick={() => go(ex)}>
+                {ex}
+              </button>
+            ))}
+          </p>
+          <Link
+            to={lp("/assistant")}
+            className="mt-8 inline-flex min-h-14 items-center gap-3 rounded-full border-2 border-current px-5 py-2 text-lg font-semibold text-primary-ink no-underline hover:bg-white/10"
+          >
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-ink text-primary">
+              <Icon name="mic" size={22} />
+            </span>
+            {t("voice.heroAsk")}
+          </Link>
         </div>
-        <div className="photo aspect-[16/10] rounded-2xl lg:aspect-[4/5]">
+        <div className="photo hidden aspect-square rounded-2xl lg:block">
           <img
             src="/photos/photo-f9691888-960.jpg"
             srcSet="/photos/photo-f9691888-500.jpg 500w, /photos/photo-f9691888-960.jpg 960w, /photos/photo-f9691888-1280.jpg 1280w"
-            sizes="(min-width: 1024px) 40vw, 100vw"
+            sizes="33vw"
             width={1280}
             height={962}
             alt={t("home.heroPhotoAlt")}
-            fetchPriority="high"
             decoding="async"
             data-source="stand-in"
             data-subject="Ust-Kamenogorsk"
@@ -124,19 +131,18 @@ function Tasks() {
   return (
     <section className="container-page section" aria-labelledby="h-tasks">
       <SectionHead id="h-tasks" title={t("home.tasksTitle")} />
-      <ul className="grid gap-3 md:grid-cols-2">
+      <ul className="grid gap-x-10 gap-y-7 md:grid-cols-2 lg:grid-cols-3">
         {TASKS.map((task) => (
-          <li key={task.key}>
-            <Link to={lp(task.to)} className="card-link flex h-full items-center gap-4 p-4 sm:p-5">
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                <Icon name={task.icon} size={24} />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block text-lg font-semibold leading-snug">{t(`home.tasks.${task.key}.title`)}</span>
-                <span className="mt-1 block text-muted">{t(`home.tasks.${task.key}.text`)}</span>
-              </span>
-              <Icon name="right" size={22} className="shrink-0 text-muted" />
-            </Link>
+          <li key={task.key} className="flex gap-4">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-ink" aria-hidden="true">
+              <Icon name="arrow" size={24} />
+            </span>
+            <span className="min-w-0">
+              <Link to={lp(task.to)} className="text-lg font-semibold leading-snug">
+                {t(`home.tasks.${task.key}.title`)}
+              </Link>
+              <span className="mt-1 block text-muted">{t(`home.tasks.${task.key}.text`)}</span>
+            </span>
           </li>
         ))}
       </ul>
@@ -160,16 +166,14 @@ function HistoryInDocuments() {
         <p className="lead -mt-3 mb-6">{t("home.historyText")}</p>
         {q.isLoading && <Loading />}
         <ul className="grid grid-cols-2 gap-x-4 gap-y-6 md:grid-cols-4">
-          {q.data?.items.map((d) => (
-            <li key={d.id}>
+          {q.data?.items.map((d, i) => (
+            <li key={d.id} className={i >= 4 ? "hidden md:block" : undefined}>
               <Link to={lp(`/catalog/documents/${d.id}`)} className="group block text-ink no-underline">
                 <div className="photo aspect-[4/3] rounded-xl">
                   {d.thumb_url && <img src={d.thumb_url} alt="" loading="lazy" decoding="async" />}
                 </div>
-                <p className="mt-2 line-clamp-2 font-medium leading-snug group-hover:underline">{d.title}</p>
-                <p className="meta">
-                  {d.period_label || yearsLabel(d.year_from, d.year_to)} {d.is_demo && <DemoBadge short />}
-                </p>
+                <p className="mt-3 font-medium leading-normal group-hover:underline">{d.title}</p>
+                <p className="meta mt-1">{d.period_label || yearsLabel(d.year_from, d.year_to)}</p>
               </Link>
             </li>
           ))}
@@ -199,8 +203,8 @@ function Today() {
         <>
           {!q.data.exact && <p className="-mt-3 mb-6 text-muted">{t("home.todayNearest")}</p>}
           <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {q.data.items.map((m) => (
-              <li key={m.id} className="card-flat p-5">
+            {q.data.items.map((m, i) => (
+              <li key={m.id} className={`card-flat p-5 ${i >= 2 ? "hidden sm:block" : ""}`}>
                 <p className="text-lg font-semibold text-primary">{m.date_label ?? `${m.day}.${m.month}`}</p>
                 <p className="mt-2 leading-snug">{m.title}</p>
                 {m.translation.is_fallback && (
@@ -211,7 +215,6 @@ function Today() {
               </li>
             ))}
           </ul>
-          <p className="meta mt-4">{t("home.todaySource")}</p>
         </>
       )}
     </section>

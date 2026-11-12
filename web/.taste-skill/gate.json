@@ -1,0 +1,1630 @@
+{
+ "start": "2026-11-12T11:01:51.038Z",
+ "round": 3,
+ "idle": 0,
+ "errors": 0,
+ "status": "open",
+ "history": [
+  {
+   "at": "2026-11-12T11:41:02.984Z",
+   "mode": "hook",
+   "host": "claude",
+   "decision": "block",
+   "reason": "a build is active in /Users/sofiya/CoShip/codemaster90/codemaster-9.0/web, but index.html is a framework's source shell (its sections exist only once it is serv",
+   "stopHookActive": false
+  },
+  {
+   "at": "2026-11-12T11:43:05.460Z",
+   "mode": "manual",
+   "status": "fail",
+   "fails": 53,
+   "round": 1,
+   "reused": false,
+   "stopHookActive": false
+  },
+  {
+   "at": "2026-11-12T11:45:29.782Z",
+   "mode": "manual",
+   "status": "fail",
+   "fails": 41,
+   "round": 2,
+   "reused": false,
+   "stopHookActive": false
+  },
+  {
+   "at": "2026-11-12T11:47:41.625Z",
+   "mode": "manual",
+   "status": "open",
+   "fails": 34,
+   "round": 3,
+   "reused": false,
+   "stopHookActive": false
+  },
+  {
+   "at": "2026-11-12T11:47:58.861Z",
+   "mode": "hook",
+   "host": "claude",
+   "decision": "allow",
+   "reason": "no build is active here",
+   "stopHookActive": true
+  }
+ ],
+ "max": 3,
+ "marker": {
+  "page": null,
+  "dir": "/Users/sofiya/CoShip/codemaster90/codemaster-9.0/web",
+  "kind": "service",
+  "start": "2026-11-12T11:01:51.038Z",
+  "by": "start.mjs",
+  "url": "http://localhost:5173/ru",
+  "category": "государственный архив: каталог документов, справки",
+  "primary": "Найти документ"
+ },
+ "setupTold": true,
+ "session": "c4a66fd4-8cb4-43b3-8219-58df2cc75515",
+ "at": "2026-11-12T11:47:41.625Z",
+ "manual": true,
+ "roundKey": "ac6c7750ac03f34f:125b75d7",
+ "roundFree": false,
+ "idleFree": false,
+ "blockKey": null,
+ "fp": "ac6c7750ac03f34f",
+ "page": "http://localhost:5173/ru",
+ "found": {
+  "fails": [
+   {
+    "check": "nav-covers",
+    "where": "div#root > div.flex.min-h-screen > button.btn-primary.btn-lg \"Помощник\"",
+    "msg": "sits on top of the text \"Набережная Иртыша летом\" while the page scrolls: part of the line shows beside it",
+    "fix": "make the fixed nav one opaque band across the whole screen, or let it scroll away with the page",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency",
+    "ids": [
+     "nav-covers"
+    ],
+    "wheres": [
+     "div#root > div.flex.min-h-screen > button.btn-primary.btn-lg \"Помощник\""
+    ]
+   },
+   {
+    "check": "no-visual",
+    "where": "main#main > section.container-page.section:nth-of-type(2) \"Чем мы можем помочь\"",
+    "msg": "no picture, effect or mock in this section; a feature section needs a visual",
+    "fix": "give the section a visual: a UI fragment on a ground, real icons, or a photograph that fits",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency",
+    "ids": [
+     "no-visual"
+    ],
+    "wheres": [
+     "main#main > section.container-page.section:nth-of-type(2) \"Чем мы можем помочь\""
+    ]
+   },
+   {
+    "check": "no-visual",
+    "where": "main#main > section.container-page.section:nth-of-type(4) \"Сегодня в истории ВКО\"",
+    "msg": "no picture, effect or mock in this section; a feature section needs a visual",
+    "fix": "give the section a visual: a UI fragment on a ground, real icons, or a photograph that fits",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency",
+    "ids": [
+     "no-visual"
+    ],
+    "wheres": [
+     "main#main > section.container-page.section:nth-of-type(4) \"Сегодня в истории ВКО\""
+    ]
+   },
+   {
+    "check": "card-visual",
+    "where": "main#main > section.container-page.section:nth-of-type(4) > ul.grid.gap-3 \"16 ноября 135 лет (1890) со дня рождения\"",
+    "msg": "4 cards hold only text: no picture, icon, UI fragment or effect in any of them",
+    "fix": "give the cards a visual: an inset panel with a UI fragment, a photograph or real icons",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "card-visual"
+    ],
+    "wheres": [
+     "main#main > section.container-page.section:nth-of-type(4) > ul.grid.gap-3 \"16 ноября 135 лет (1890) со дня рождения\""
+    ]
+   },
+   {
+    "check": "button-styles",
+    "where": "(one screen)",
+    "msg": "5 button styles on one screen: soft, fill #111111, outline #404040 (\"Версия для слабовидящих\"); soft, fill #96b9ff (\"Электронный каталог\"); soft, fill #f5f5f5 (\"Рус\"); square, fill #f5f5f5 (\"Найти\"); pill, fill #96b9ff (\"Помощник\"); the odd ones out: \"Рус\", \"Найти\", \"Помощник\"",
+    "fix": "one primary and one secondary button: one shape, one height per size, one label size",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency",
+    "ids": [
+     "button-styles"
+    ],
+    "wheres": [
+     "(one screen)"
+    ]
+   },
+   {
+    "check": "button-styles",
+    "where": "(the page)",
+    "msg": "7 button styles on the page: soft, fill #f5f5f5 x1 (\"Рус\"); soft, fill #111111, outline #404040 x3 (\"Версия для слабовидящих\"); soft, fill #96b9ff x2 (\"Электронный каталог\"); square, fill #f5f5f5 x1 (\"Найти\"); pill, fill #96b9ff x1 (\"Помощник\"); pill, outline #111111 x1 (\"Не знаете, где искать? Спросите голосом\"); round, fill #111111, outline #404040 x2 (\"Instagram (открывается на внешнем сайте)\")",
+    "fix": "one primary and one secondary button: one shape, one height per size, one label size",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency",
+    "ids": [
+     "button-styles"
+    ],
+    "wheres": [
+     "(the page)"
+    ]
+   },
+   {
+    "check": "button-styles",
+    "where": "div.container-page.section > div:nth-of-type(1) > div.mt-8.flex > a.btn-ghost.btn-lg \"Все филиалы на карте\"",
+    "msg": "one button style (soft, fill #111111, outline #404040) in 2 heights: 54, 63px (\"Все филиалы на карте\" 63px, \"Онлайн-выставки\" 54px)",
+    "fix": "one primary and one secondary button: one shape, one height per size, one label size",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "button-styles"
+    ],
+    "wheres": [
+     "div.container-page.section > div:nth-of-type(1) > div.mt-8.flex > a.btn-ghost.btn-lg \"Все филиалы на карте\""
+    ]
+   },
+   {
+    "check": "cta",
+    "where": "main#main > section.container-page.section:nth-of-type(6) \"Новости и события\"",
+    "msg": "the last section before the footer ends with no button",
+    "fix": "add the action: a button in the hero, one on every priced item, one in the closing section",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency",
+    "ids": [
+     "cta"
+    ],
+    "wheres": [
+     "main#main > section.container-page.section:nth-of-type(6) \"Новости и события\""
+    ]
+   },
+   {
+    "check": "street-number",
+    "where": "script[type=\"application/ld+json\"] \"ул. Бейбітшілік, 26/1\"",
+    "msg": "a streetAddress with a house number in the JSON-LD: \"ул. Бейбітшілік, 26/1\"; a real door, which the brief does not give",
+    "fix": "print the street and the district only (\"Weserstraße, Berlin-Neukölln\"): no house number, unless the brief gives the address",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "street-number"
+    ],
+    "wheres": [
+     "script[type=\"application/ld+json\"] \"ул. Бейбітшілік, 26/1\""
+    ]
+   },
+   {
+    "check": "postcode",
+    "where": "script[type=\"application/ld+json\"] \"070000\"",
+    "msg": "a postalCode in the JSON-LD: \"070000\"; with the street it points at one building, which the brief does not give",
+    "fix": "drop the postcode: the street and the district say where it is (copy.md, Address)",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "postcode"
+    ],
+    "wheres": [
+     "script[type=\"application/ld+json\"] \"070000\""
+    ]
+   },
+   {
+    "check": "phone-number",
+    "where": "div.flex.gap-3:nth-of-type(3) > div > dd > a \"tel:87232255976\"",
+    "msg": "a tel: link calls a number in a real dialable format: \"tel:87232255976\"; a visitor can dial it and reach a stranger (and 2 more like it: div.container-page.section > div:nth-of-type(1) > div.mt-8.flex > a.btn-primary.btn-lg, section:nth-of-type(1) > ul.mt-4.space-y-3 > li.flex.gap-3:nth-of-type(2) > a)",
+    "fix": "drop the number and its tel: link (a \"Request a call\" form may stand in), unless the brief gives the number",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "phone-number"
+    ],
+    "wheres": [
+     "div.flex.gap-3:nth-of-type(3) > div > dd > a \"tel:87232255976\""
+    ]
+   },
+   {
+    "check": "phone-number",
+    "where": "script[type=\"application/ld+json\"] \"+7 7232 25-59-76\"",
+    "msg": "a telephone in a real dialable format in the JSON-LD: \"+7 7232 25-59-76\"; a visitor can dial it and reach a stranger",
+    "fix": "drop the number and its tel: link (a \"Request a call\" form may stand in), unless the brief gives the number",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "phone-number"
+    ],
+    "wheres": [
+     "script[type=\"application/ld+json\"] \"+7 7232 25-59-76\""
+    ]
+   },
+   {
+    "check": "moment-none",
+    "where": "(the page)",
+    "msg": "a service page (--type) deals no moment: every kind carries one, two on a long page (moments.md)",
+    "fix": "deal one (moments.mjs pick --page service --photo) and mount it in its own section",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "moment-none"
+    ],
+    "wheres": [
+     "(the page)"
+    ]
+   },
+   {
+    "check": "hero-screen",
+    "where": "main#main > section.hero-band.bg-primary \"Государственный архив Восточно-Казахстан\"",
+    "msg": "the hero ends at 979px on a 900px screen, 79px below the fold: it ends at the fold, 1px either way (SR-1)",
+    "fix": "make the hero exactly one screen (height: 100svh, its content fitted inside), never taller or shorter",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "hero-screen"
+    ],
+    "wheres": [
+     "main#main > section.hero-band.bg-primary \"Государственный архив Восточно-Казахстан\""
+    ]
+   },
+   {
+    "check": "section-height",
+    "where": "main#main > section.container-page.section:nth-of-type(2) \"Чем мы можем помочьНайти документ или фо\"",
+    "msg": "the section is 577px tall (0.6 screens), 323px short of one screen (900px): every section after the hero is one screen or two, 2px either way (SR-2)",
+    "fix": "set the section to one screen or two (height: calc(var(--h,1) * 100vh), --h 1 or 2) and cut or split its content to fit",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "section-height"
+    ],
+    "wheres": [
+     "main#main > section.container-page.section:nth-of-type(2) \"Чем мы можем помочьНайти документ или фо\"",
+     "main#main > section.border-t.border-line \"Как нас найтиАдрес070000, г. Усть-Камено\"",
+     "main#main > section.container-page.section:nth-of-type(4) \"Сегодня в истории ВКОПодробнее Ближайшие\"",
+     "main#main > section.container-page.section:nth-of-type(6) \"Новости и событияВсе 10 ноября 2026 г.За\"",
+     "main#main > section.border-y.border-line \"История в документахВсе Оцифрованные фот\""
+    ]
+   },
+   {
+    "check": "section-height",
+    "where": "div#root > div.flex.min-h-screen > footer.mt-16.border-t \"Государственный архив ВКОАдрес: 070000, \"",
+    "msg": "the section's content does not fit it: its lowest content ends 816px below its top, past 782px (the section less 72px of bottom padding) (SR-2)",
+    "fix": "fit the content above the section's bottom padding (--padb), or make it two screens (.g2) in two groups",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "section-height"
+    ],
+    "wheres": [
+     "div#root > div.flex.min-h-screen > footer.mt-16.border-t \"Государственный архив ВКОАдрес: 070000, \""
+    ]
+   },
+   {
+    "check": "one-section",
+    "where": "h2#h-visit \"Как нас найти\"",
+    "msg": "the screen at scroll 2700px (stride 3) shows 334px of section 5 and the heading of section 5 whole and the content of 2 sections, over 24px each beside section 4: a screen shows one section (another may peek 8px, 24px WARN) (SR-4)",
+    "fix": "make each section exactly one screen or two, so a screen shows one section and no neighbour peeks",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "one-section"
+    ],
+    "wheres": [
+     "h2#h-visit \"Как нас найти\""
+    ]
+   },
+   {
+    "check": "one-section",
+    "where": "h2#h-history \"История в документах\"",
+    "msg": "the screen at scroll 979px (the top of section 2) shows 324px of section 3 and the heading of section 3 whole and the content of 2 sections, over 24px each beside section 2: a screen shows one section (another may peek 8px, 24px WARN) (SR-4)",
+    "fix": "make each section exactly one screen or two, so a screen shows one section and no neighbour peeks",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "one-section"
+    ],
+    "wheres": [
+     "h2#h-history \"История в документах\""
+    ]
+   },
+   {
+    "check": "one-section",
+    "where": "h2#h-news \"Новости и события\"",
+    "msg": "the screen at scroll 3266px (the top of section 5) shows 321px of section 6 and the heading of section 6 whole and the content of 2 sections, over 24px each beside section 5: a screen shows one section (another may peek 8px, 24px WARN) (and 7 more like it: scroll 2620px, scroll 3600px, scroll 900px) (SR-4)",
+    "fix": "make each section exactly one screen or two, so a screen shows one section and no neighbour peeks",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "one-section"
+    ],
+    "wheres": [
+     "h2#h-news \"Новости и события\""
+    ]
+   },
+   {
+    "check": "one-heading",
+    "where": "footer.mt-16.border-t > div.container-page.grid > nav > h2 \"Разделы сайта\"",
+    "msg": "the section holds 3 h2 headings: one per section, first in its .wrap (SR-5)",
+    "fix": "give each section one h2, first in its .wrap, and the hero only its h1",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "one-heading"
+    ],
+    "wheres": [
+     "footer.mt-16.border-t > div.container-page.grid > nav > h2 \"Разделы сайта\""
+    ]
+   },
+   {
+    "check": "one-heading",
+    "where": "h2#h-history \"История в документах\"",
+    "msg": "headings of two sections show whole on one screen at 17 of 92 scroll positions (18.5%; at scroll 800, 850, 900, 950px), here with \"Чем мы можем помочь\": at most 3% on a desktop (SR-5)",
+    "fix": "make the sections one screen tall so their headings sit a screen apart and two never share one",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "one-heading"
+    ],
+    "wheres": [
+     "h2#h-history \"История в документах\""
+    ]
+   },
+   {
+    "check": "container-edges",
+    "where": "div#root > div.flex.min-h-screen > header.bg-bg \"ҚазРусEngСлабовидящимВерсия для слабовид\"",
+    "msg": "the nav's content runs 72px from the left and 81px from the right (read from its outermost blocks: no .wrap): the page's container starts at 81px; 72 and 81px are not one margin (one container, equal margins, 2px either way) (SR-6)",
+    "fix": "use one container on every section and the nav (.wrap): one margin left and right, 64-120px on a desktop, 16-24px on a phone",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "container-edges"
+    ],
+    "wheres": [
+     "div#root > div.flex.min-h-screen > header.bg-bg \"ҚазРусEngСлабовидящимВерсия для слабовид\""
+    ]
+   },
+   {
+    "check": "container-edges",
+    "where": "div#root \"Перейти к содержаниюҚазРусEngСлабовидящи\"",
+    "msg": "a <div> at the top of the page, outside header.nav, main, footer.closing and nav.actionbar (SR-6)",
+    "fix": "build the page as header.nav, a main of sections (each one in-flow .wrap plus background layers) and footer.closing",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "container-edges"
+    ],
+    "wheres": [
+     "div#root \"Перейти к содержаниюҚазРусEngСлабовидящи\""
+    ]
+   },
+   {
+    "check": "container-edges",
+    "where": "main#main > section.hero-band.bg-primary \"Государственный архив Восточно-Казахстан\"",
+    "msg": "the section needs exactly one in-flow child .wrap (it has 1 in-flow child, 0 .wrap) (and 6 more like it: \"Чем мы можем помочьНайти\", \"История в документахВсе \", \"Сегодня в истории ВКОПод\") (SR-6)",
+    "fix": "build the page as header.nav, a main of sections (each one in-flow .wrap plus background layers) and footer.closing",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "container-edges"
+    ],
+    "wheres": [
+     "main#main > section.hero-band.bg-primary \"Государственный архив Восточно-Казахстан\""
+    ]
+   },
+   {
+    "check": "container-edges",
+    "where": "div#root > div.flex.min-h-screen > header.bg-bg > div.border-b.border-line:nth-of-type(1) \"ҚазРусEngСлабовидящимВерсия для слабовид\"",
+    "msg": "a box runs 0-1440px, outside the container lines of the nav at 81-1359px: full width is for background layers and grounds only (SR-6)",
+    "fix": "keep it inside the container lines (.wrap): full width is for background layers and grounds only",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "container-edges"
+    ],
+    "wheres": [
+     "div#root > div.flex.min-h-screen > header.bg-bg > div.border-b.border-line:nth-of-type(1) \"ҚазРусEngСлабовидящимВерсия для слабовид\""
+    ]
+   },
+   {
+    "check": "container-edges",
+    "where": "div#root > div.flex.min-h-screen > header.bg-bg > div.border-b.border-line:nth-of-type(2) \"Государственный архив ВКО Электронный ка\"",
+    "msg": "a box runs 0-1440px, outside the container lines of the nav at 81-1359px: full width is for background layers and grounds only (and 4 more like it: \"Об архивеЭлектронный кат\", \"КГУ «Государственный арх\", \"Қаз\") (SR-6)",
+    "fix": "keep it inside the container lines (.wrap): full width is for background layers and grounds only",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "container-edges"
+    ],
+    "wheres": [
+     "div#root > div.flex.min-h-screen > header.bg-bg > div.border-b.border-line:nth-of-type(2) \"Государственный архив ВКО Электронный ка\""
+    ]
+   },
+   {
+    "check": "container-edges",
+    "where": "h2#f-gov \"Государственные ресурсы\"",
+    "msg": "the h2 starts 939px right of the container's left: every h1 and h2 starts on it, 2px either way (SR-6)",
+    "fix": "start the text on the container's left, or on the one split line every split shares",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "container-edges"
+    ],
+    "wheres": [
+     "h2#f-gov \"Государственные ресурсы\""
+    ]
+   },
+   {
+    "check": "container-edges",
+    "where": "footer.mt-16.border-t > div.container-page.grid > nav > h2 \"Разделы сайта\"",
+    "msg": "the h2 starts 554px right of the container's left: every h1 and h2 starts on it, 2px either way (and 3 more like it: x 153, x 119, x 96) (SR-6)",
+    "fix": "start the text on the container's left, or on the one split line every split shares",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "container-edges"
+    ],
+    "wheres": [
+     "footer.mt-16.border-t > div.container-page.grid > nav > h2 \"Разделы сайта\""
+    ]
+   },
+   {
+    "check": "container-edges",
+    "where": "div#root > div.flex.min-h-screen > footer.mt-16.border-t > div.border-t.border-line \"КГУ «Государственный архив Восточно-Каза\"",
+    "msg": "a box over half the container wide runs 0-1440px, not on the container's lines at 81-1359px (SR-6)",
+    "fix": "run the picture or box from the container's left line to its right line, or put it in a row or a split",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "container-edges"
+    ],
+    "wheres": [
+     "div#root > div.flex.min-h-screen > footer.mt-16.border-t > div.border-t.border-line \"КГУ «Государственный архив Восточно-Каза\""
+    ]
+   },
+   {
+    "check": "split-pair",
+    "where": "main#main > section.hero-band.bg-primary > div.container-page.grid \"Государственный архив Восточно-Казахстан\"",
+    "msg": "the two columns of the split start 90px apart at the top (centred on each other): a split's columns are top-aligned, 8px either way (SR-8)",
+    "fix": "top-align both columns of the split (align-items: start)",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "split-pair"
+    ],
+    "wheres": [
+     "main#main > section.hero-band.bg-primary > div.container-page.grid \"Государственный архив Восточно-Казахстан\""
+    ]
+   },
+   {
+    "check": "split-pair",
+    "where": "main#main > section.border-t.border-line > div.container-page.section \"Как нас найтиАдрес070000, г. Усть-Камено\"",
+    "msg": "the two columns of the split start 27px apart at the top: a split's columns are top-aligned, 8px either way (SR-8)",
+    "fix": "top-align both columns of the split (align-items: start)",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "split-pair"
+    ],
+    "wheres": [
+     "main#main > section.border-t.border-line > div.container-page.section \"Как нас найтиАдрес070000, г. Усть-Камено\""
+    ]
+   },
+   {
+    "check": "nav",
+    "where": "header.bg-bg > div.border-b.border-line:nth-of-type(2) > div.container-page.flex > a.flex.flex-1 \"Государственный архив ВКО\"",
+    "msg": "\"Государственный архив ВКО\" sits outside the nav bar div#root > div.flex.min-h-screen > header.bg-bg > div.border-b.border-line:nth-of-type(1) (0-390px)",
+    "fix": "make the nav one bar from the content's left edge to its right edge, with every link and action inside it",
+    "widths": [
+     390
+    ],
+    "from": "consistency",
+    "ids": [
+     "nav"
+    ],
+    "wheres": [
+     "header.bg-bg > div.border-b.border-line:nth-of-type(2) > div.container-page.flex > a.flex.flex-1 \"Государственный архив ВКО\""
+    ]
+   },
+   {
+    "check": "nav",
+    "where": "header.bg-bg > div.border-b.border-line:nth-of-type(2) > div.container-page.flex > button.btn-ghost.shrink-0 \"Меню\"",
+    "msg": "\"Меню\" sits outside the nav bar div#root > div.flex.min-h-screen > header.bg-bg > div.border-b.border-line:nth-of-type(1) (0-390px)",
+    "fix": "make the nav one bar from the content's left edge to its right edge, with every link and action inside it",
+    "widths": [
+     390
+    ],
+    "from": "consistency",
+    "ids": [
+     "nav"
+    ],
+    "wheres": [
+     "header.bg-bg > div.border-b.border-line:nth-of-type(2) > div.container-page.flex > button.btn-ghost.shrink-0 \"Меню\""
+    ]
+   },
+   {
+    "check": "spill",
+    "where": "div.h-72.w-full > div.leaflet-pane.leaflet-map-pane > div.leaflet-pane.leaflet-overlay-pane > svg.leaflet-zoom-animated",
+    "msg": "runs 123px past the right edge of the panel it sits on (div.leaflet-pane.leaflet-tile-pane > div.leaflet-layer > div.leaflet-tile-container.leaflet-zoom-animated > img.leaflet-tile.leaflet-tile-loaded:nth-of-type(1))",
+    "fix": "keep the box inside the panel it starts on: shrink it, or grow the panel to hold it",
+    "widths": [
+     390
+    ],
+    "from": "consistency",
+    "ids": [
+     "spill"
+    ],
+    "wheres": [
+     "div.h-72.w-full > div.leaflet-pane.leaflet-map-pane > div.leaflet-pane.leaflet-overlay-pane > svg.leaflet-zoom-animated"
+    ]
+   },
+   {
+    "check": "tap-size",
+    "where": "div.flex.gap-3:nth-of-type(3) > div > dd > a \"8 (7232) 25-59-76\"",
+    "msg": "a 169x24px tap target: 7px from the next one (\"Помощник\"), so a thumb lands on the wrong one",
+    "fix": "make every link and control outside running text 44px tall on a phone: display: inline-flex; align-items: center; min-height: 44px (a footer list then needs no gap), a 44px small button, or a transparent ::before laid past the box",
+    "widths": [
+     390
+    ],
+    "from": "consistency",
+    "ids": [
+     "tap-size"
+    ],
+    "wheres": [
+     "div.flex.gap-3:nth-of-type(3) > div > dd > a \"8 (7232) 25-59-76\""
+    ]
+   },
+   {
+    "check": "no-visual",
+    "where": "main#main > section.hero-band.bg-primary \"Государственный архив Восточно-Казахстан\"",
+    "msg": "no picture, effect or mock in this section; a feature section needs a visual",
+    "fix": "give the section a visual: a UI fragment on a ground, real icons, or a photograph that fits",
+    "widths": [
+     390
+    ],
+    "from": "consistency",
+    "ids": [
+     "no-visual"
+    ],
+    "wheres": [
+     "main#main > section.hero-band.bg-primary \"Государственный архив Восточно-Казахстан\""
+    ]
+   },
+   {
+    "check": "hero-fill",
+    "where": "main#main > section.container-page.section:nth-of-type(2) \"Чем мы можем помочь\"",
+    "msg": "the next section shows on the first screen: it starts at 886px on a 1024px screen (the hero ends at 886px)",
+    "fix": "let the hero fill the first screen alone (min-height: 100svh, less above it): nothing of the next section on load",
+    "widths": [
+     768
+    ],
+    "from": "consistency",
+    "ids": [
+     "hero-fill"
+    ],
+    "wheres": [
+     "main#main > section.container-page.section:nth-of-type(2) \"Чем мы можем помочь\""
+    ]
+   },
+   {
+    "check": "tap-size",
+    "where": "section:nth-of-type(1) > ul.mt-4.space-y-3 > li.flex.gap-3:nth-of-type(2) > a \"8 (7232) 25-59-76\"",
+    "msg": "a 150x29px tap target: 0px from the next one (\"Помощник\"), so a thumb lands on the wrong one",
+    "fix": "make every link and control outside running text 44px tall on a phone: display: inline-flex; align-items: center; min-height: 44px (a footer list then needs no gap), a 44px small button, or a transparent ::before laid past the box",
+    "widths": [
+     320
+    ],
+    "from": "consistency",
+    "ids": [
+     "tap-size"
+    ],
+    "wheres": [
+     "section:nth-of-type(1) > ul.mt-4.space-y-3 > li.flex.gap-3:nth-of-type(2) > a \"8 (7232) 25-59-76\""
+    ]
+   },
+   {
+    "check": "container",
+    "where": "page",
+    "msg": "no .wrap",
+    "fix": "put the content in one .wrap",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "layout",
+    "ids": [
+     "container"
+    ],
+    "wheres": [
+     "page"
+    ]
+   }
+  ],
+  "warns": [
+   {
+    "check": "overlap-text",
+    "where": "article.card-hit.flex > div.flex.flex-1 > h3.mt-2.text-lg > a.hit \"Запущен прототип нового сайта с электрон\"",
+    "msg": "inside article.card-hit.flex, a box sits on the mock's own text and hides it mid-line (\"10 ноября 2026 г.\") (and 2 more like it: \"Онлайн-выставка «Усть-Ка\", \"Риддерский филиал провёл\")",
+    "fix": "move the box off the text (or the text off the box)",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "fold-cut",
+    "where": "section.hero-band.bg-primary > div.container-page.grid > div:nth-of-type(1) > a.mt-8.inline-flex \"Не знаете, где искать? Спросите голосом\"",
+    "msg": "the hero's button \"Не знаете, где искать? Спросит\" is cut by the bottom of the first screen (7px of its 67px below the fold)",
+    "fix": "size the hero so the heading ends above the fold, or starts below it",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "no-visual",
+    "where": "main#main > section.hero-band.bg-primary \"Государственный архив Восточно-Казахстан\"",
+    "msg": "pictures, effects and mocks cover 23% of this section; a feature section needs a visual (about 25% or more)",
+    "fix": "give the section a visual: a UI fragment on a ground, real icons, or a photograph that fits",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "copy-headline",
+    "where": "h1#hero-title \"Государственный архив Восточно-Казахстан\"",
+    "msg": "\"Государственный архив Восточно-Казахстанской области\": no category known to check it against (pass --category, or write the <title> as \"Name: what it is for whom\")",
+    "fix": "put the category noun in the h1 (and who it is for, or where), in 2 to 8 words",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "copy-buttons",
+    "where": "section:nth-of-type(1) > ul.mt-5.flex > li:nth-of-type(1) > a.chip.gap-2 \"Instagram (открывается на внешнем сайте)\"",
+    "msg": "\"Instagram (открывается на внешнем сайте)\" does not start with a verb (book, buy, try, start, get, see...) (and 1 more like it: \"Facebook (открывается на\")",
+    "fix": "label buttons with a verb and what the visitor gets (\"Book a room\", \"Start free trial\")",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "copy-actions",
+    "where": "(the page)",
+    "msg": "the main action \"Найти документ\" does not read word for word the same in the closing section",
+    "fix": "few actions, one wording: at most 2 in the hero, the main action word for word in nav, hero and close",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "off-grid",
+    "where": "div.container-page.flex > ul.flex.gap-1 > li:nth-of-type(2) > a.inline-flex.min-h-11 \"Рус\"",
+    "msg": "left edge at 127.5px, 12.5px off a common edge of its section at 115px (4 elements, none of them near it)",
+    "fix": "move it onto the page margin, or the column edge its section uses",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "photo-set",
+    "where": "div.leaflet-pane.leaflet-tile-pane > div.leaflet-layer > div.leaflet-tile-container.leaflet-zoom-animated > img.leaflet-tile.leaflet-tile-loaded:nth-of-type(1) \"21.png\"",
+    "msg": "14 photographs in more than one look: lightness from 0.46 to 0.89; the odd one out is 21.png",
+    "fix": "grade the photographs to one look (light, colour, warmth), or replace the odd one out",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "photo-credit",
+    "where": "(the page text)",
+    "msg": "1 library source (wikimedia): the page credits wikimedia; confirm each shows the client's own product, place or people",
+    "fix": "confirm the library photograph shows the client's own product, place or people; otherwise replace it",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "link-styles",
+    "where": "article.card-hit.flex > div.flex.flex-1 > h3.mt-2.text-lg > a.hit \"Запущен прототип нового сайта с электрон\"",
+    "msg": "text links in 3 looks: underline, bold (7, like \"Найти документ или ф\"); underline, regular (12, like \"Все\"); no line, bold (3, like \"Запущен прототип нов\")",
+    "fix": "give text links one look wherever they sit: one underline, one weight",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "orphan",
+    "where": "main#main > section.container-page.section:nth-of-type(4) > ul.grid.gap-3 > li.card-flat.p-5:nth-of-type(3) \"2 ноября 105 лет (1920) со дня рождения \"",
+    "msg": "its last line holds only \"ССР.\" (and 1 more like it: \"105 лет (1920) со дня ро\")",
+    "fix": "rebalance the text (text-wrap: pretty, or a shorter line) so the last line holds more than one short word",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "button-contrast",
+    "where": "div#root > div.flex.min-h-screen > button.btn-primary.btn-lg \"Помощник\"",
+    "msg": "the button \"Помощник\" (#96b9ff) stands only 1.27:1 off the ground around it: it reads as part of the ground, or as switched off",
+    "fix": "give the button a fill that stands at least 1.5:1 off what is around it, or an outline in the ink",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "split-align",
+    "where": "main#main > section.hero-band.bg-primary > div.container-page.grid \"Государственный архив Восточно-Казахстан\"",
+    "msg": "the picture beside \"Государственный архив Восточно\" sits centred on a text column 183px taller: its top and bottom line up with nothing",
+    "fix": "set the picture's top on the heading's top (align-items: start), or let it run the column's full height",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "action-count",
+    "where": "div#root > div.flex.min-h-screen > button.btn-primary.btn-lg",
+    "msg": "the main action \"Найти документ\" is on 9 buttons and links: the nav, the hero and the closing call carry it; elsewhere a section has its own action",
+    "fix": "the main action in the nav, the hero and the closing call; give the other sections their own action",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "one-screen",
+    "where": "main#main > section.container-page.section:nth-of-type(2) \"Чем мы можем помочь\"",
+    "msg": "3 sections are shorter than the screen, so the next one's heading or picture shows with them: \"Чем мы можем помочь\" is 577px of the 900px under the nav, and \"История в документах\" shows below it (\"Сегодня в истории ВК\", \"Как нас найти\")",
+    "fix": "give each section the screen (min-height: 100svh less the nav, its content centred), or join two short ones into one",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "skip-link",
+    "where": "div#root > div.flex.min-h-screen > a.sr-only-focusable.absolute \"Перейти к содержанию\"",
+    "msg": "the first Tab stop is \"Перейти к содержанию\", not a skip link: a keyboard user tabs through the whole nav on every visit",
+    "fix": "add the starter's skip link as the header's first child: <a class=\"skip-link\" href=\"#top\">Skip to content</a>",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "share-meta",
+    "where": "head",
+    "msg": "the head lacks twitter:card: a shared link shows no picture or title of its own",
+    "fix": "copy the head block of starter.html: og tags, twitter:card, the icon and theme-color (references/system.md, Head)",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "form-fields",
+    "where": "section.hero-band.bg-primary:nth-of-type(1) > div.container-page.grid > div:nth-of-type(1) > form.mt-8.max-w-2xl",
+    "msg": "the form has no status line (role=\"status\"): sending, sent and errors are never read out",
+    "fix": "give each field its type, autocomplete and inputmode, never block paste or disable the button before a submit, and add the status line (references/system.md, Forms)",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "tap-size",
+    "where": "section:nth-of-type(1) > ul.mt-4.space-y-3 > li.flex.gap-3:nth-of-type(2) > a \"8 (7232) 25-59-76\"",
+    "msg": "a 150x29px tap target (and 1 more like it on this screen): under the 44px a phone needs",
+    "fix": "make every link and control outside running text 44px tall on a phone: display: inline-flex; align-items: center; min-height: 44px (a footer list then needs no gap), a 44px small button, or a transparent ::before laid past the box",
+    "widths": [
+     390
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "button-styles",
+    "where": "div:nth-of-type(1) > form.mt-8.max-w-2xl > div.flex > button.inline-flex.min-h-14 \"Найти\"",
+    "msg": "on the phone 3 buttons run the full width of their column, but 2 keep their own width, like \"Найти\" is 63px of 354px: one action in two sizes",
+    "fix": "give every button the same width rule on the phone: all full width, or all at their own width",
+    "widths": [
+     390
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "heading-scale",
+    "where": "li:nth-of-type(1) > article.card-hit.flex > div.flex.flex-1 > h3.mt-2.text-lg \"Запущен прототип нового сайта с электрон\"",
+    "msg": "the h3s (20.3px) are only 1.22x smaller than the h2s (24.8px): one level a clear step (1.3x or more) below the other",
+    "fix": "size headings by level: the h1 largest, one size per level, each level below the one above",
+    "widths": [
+     390
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "off-grid",
+    "where": "div.border-b.border-line:nth-of-type(2) > div.container-page.flex > a.flex.flex-1 > span.font-semibold.leading-tight \"Государственный архив ВКО\"",
+    "msg": "left edge at 72px, 20px off a common edge of its section at 52px (4 elements, none of them near it)",
+    "fix": "move it onto the page margin, or the column edge its section uses",
+    "widths": [
+     390
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "stranded-action",
+    "where": "section.hero-band.bg-primary > div.container-page.grid > div:nth-of-type(1) > a.mt-8.inline-flex \"Не знаете, где искать? Спросите голосом\"",
+    "msg": "stands 263px down from the nearest text of its block (\"\")",
+    "fix": "put the button under or beside the text it belongs to",
+    "widths": [
+     390
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "fold-action",
+    "where": "section.hero-band.bg-primary > div.container-page.grid > div:nth-of-type(1) > a.mt-8.inline-flex",
+    "msg": "the hero's second button \"Не знаете, где искать? Спросит\" starts 66px below the first screen (844px tall): it is not seen on load",
+    "fix": "bring the hero's buttons onto the first screen: a shorter headline or line, the picture under the buttons",
+    "widths": [
+     390
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "fold-cut",
+    "where": "div.container-page.grid > div:nth-of-type(1) > form.mt-8.max-w-2xl > label.mb-3.block \"Что вы ищете?\"",
+    "msg": "a line of the hero text is sliced by the bottom of the first screen",
+    "fix": "size the hero so the heading ends above the fold, or starts below it",
+    "widths": [
+     320
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "tap-size",
+    "where": "section:nth-of-type(1) > ul.mt-4.space-y-3 > li.flex.gap-3:nth-of-type(3) > a \"arhiv-ukg@yandex.kz\"",
+    "msg": "a 186x29px tap target: under the 44px a phone needs",
+    "fix": "make every link and control outside running text 44px tall on a phone: display: inline-flex; align-items: center; min-height: 44px (a footer list then needs no gap), a 44px small button, or a transparent ::before laid past the box",
+    "widths": [
+     320
+    ],
+    "from": "consistency"
+   }
+  ],
+  "crashed": [],
+  "seconds": {
+   "consistency": 100,
+   "layout": 13
+  }
+ },
+ "open": [
+  {
+   "check": "no-visual",
+   "where": "main#main > section.container-page.section:nth-of-type(2) \"Чем мы можем помочь\"",
+   "msg": "no picture, effect or mock in this section; a feature section needs a visual",
+   "fix": "give the section a visual: a UI fragment on a ground, real icons, or a photograph that fits",
+   "widths": [
+    1440,
+    390
+   ],
+   "from": "consistency",
+   "ids": [
+    "no-visual"
+   ],
+   "wheres": [
+    "main#main > section.container-page.section:nth-of-type(2) \"Чем мы можем помочь\""
+   ]
+  },
+  {
+   "check": "no-visual",
+   "where": "main#main > section.container-page.section:nth-of-type(4) \"Сегодня в истории ВКО\"",
+   "msg": "no picture, effect or mock in this section; a feature section needs a visual",
+   "fix": "give the section a visual: a UI fragment on a ground, real icons, or a photograph that fits",
+   "widths": [
+    1440,
+    390
+   ],
+   "from": "consistency",
+   "ids": [
+    "no-visual"
+   ],
+   "wheres": [
+    "main#main > section.container-page.section:nth-of-type(4) \"Сегодня в истории ВКО\""
+   ]
+  },
+  {
+   "check": "card-visual",
+   "where": "main#main > section.container-page.section:nth-of-type(4) > ul.grid.gap-3 \"16 ноября 135 лет (1890) со дня рождения\"",
+   "msg": "4 cards hold only text: no picture, icon, UI fragment or effect in any of them",
+   "fix": "give the cards a visual: an inset panel with a UI fragment, a photograph or real icons",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "card-visual"
+   ],
+   "wheres": [
+    "main#main > section.container-page.section:nth-of-type(4) > ul.grid.gap-3 \"16 ноября 135 лет (1890) со дня рождения\""
+   ]
+  },
+  {
+   "check": "button-styles",
+   "where": "(one screen)",
+   "msg": "5 button styles on one screen: soft, fill #111111, outline #404040 (\"Версия для слабовидящих\"); soft, fill #96b9ff (\"Электронный каталог\"); soft, fill #f5f5f5 (\"Рус\"); square, fill #f5f5f5 (\"Найти\"); pill, fill #96b9ff (\"Помощник\"); the odd ones out: \"Рус\", \"Найти\", \"Помощник\"",
+   "fix": "one primary and one secondary button: one shape, one height per size, one label size",
+   "widths": [
+    1440,
+    390
+   ],
+   "from": "consistency",
+   "ids": [
+    "button-styles"
+   ],
+   "wheres": [
+    "(one screen)"
+   ]
+  },
+  {
+   "check": "button-styles",
+   "where": "(the page)",
+   "msg": "7 button styles on the page: soft, fill #f5f5f5 x1 (\"Рус\"); soft, fill #111111, outline #404040 x3 (\"Версия для слабовидящих\"); soft, fill #96b9ff x2 (\"Электронный каталог\"); square, fill #f5f5f5 x1 (\"Найти\"); pill, fill #96b9ff x1 (\"Помощник\"); pill, outline #111111 x1 (\"Не знаете, где искать? Спросите голосом\"); round, fill #111111, outline #404040 x2 (\"Instagram (открывается на внешнем сайте)\")",
+   "fix": "one primary and one secondary button: one shape, one height per size, one label size",
+   "widths": [
+    1440,
+    390
+   ],
+   "from": "consistency",
+   "ids": [
+    "button-styles"
+   ],
+   "wheres": [
+    "(the page)"
+   ]
+  },
+  {
+   "check": "button-styles",
+   "where": "div.container-page.section > div:nth-of-type(1) > div.mt-8.flex > a.btn-ghost.btn-lg \"Все филиалы на карте\"",
+   "msg": "one button style (soft, fill #111111, outline #404040) in 2 heights: 54, 63px (\"Все филиалы на карте\" 63px, \"Онлайн-выставки\" 54px)",
+   "fix": "one primary and one secondary button: one shape, one height per size, one label size",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "button-styles"
+   ],
+   "wheres": [
+    "div.container-page.section > div:nth-of-type(1) > div.mt-8.flex > a.btn-ghost.btn-lg \"Все филиалы на карте\""
+   ]
+  },
+  {
+   "check": "cta",
+   "where": "main#main > section.container-page.section:nth-of-type(6) \"Новости и события\"",
+   "msg": "the last section before the footer ends with no button",
+   "fix": "add the action: a button in the hero, one on every priced item, one in the closing section",
+   "widths": [
+    1440,
+    390
+   ],
+   "from": "consistency",
+   "ids": [
+    "cta"
+   ],
+   "wheres": [
+    "main#main > section.container-page.section:nth-of-type(6) \"Новости и события\""
+   ]
+  },
+  {
+   "check": "moment-none",
+   "where": "(the page)",
+   "msg": "a service page (--type) deals no moment: every kind carries one, two on a long page (moments.md)",
+   "fix": "deal one (moments.mjs pick --page service --photo) and mount it in its own section",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "moment-none"
+   ],
+   "wheres": [
+    "(the page)"
+   ]
+  },
+  {
+   "check": "hero-screen",
+   "where": "main#main > section.hero-band.bg-primary \"Государственный архив Восточно-Казахстан\"",
+   "msg": "the hero ends at 979px on a 900px screen, 79px below the fold: it ends at the fold, 1px either way (SR-1)",
+   "fix": "make the hero exactly one screen (height: 100svh, its content fitted inside), never taller or shorter",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "hero-screen"
+   ],
+   "wheres": [
+    "main#main > section.hero-band.bg-primary \"Государственный архив Восточно-Казахстан\""
+   ]
+  },
+  {
+   "check": "section-height",
+   "where": "main#main > section.container-page.section:nth-of-type(2) \"Чем мы можем помочьНайти документ или фо\"",
+   "msg": "the section is 577px tall (0.6 screens), 323px short of one screen (900px): every section after the hero is one screen or two, 2px either way (SR-2)",
+   "fix": "set the section to one screen or two (height: calc(var(--h,1) * 100vh), --h 1 or 2) and cut or split its content to fit",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "section-height"
+   ],
+   "wheres": [
+    "main#main > section.container-page.section:nth-of-type(2) \"Чем мы можем помочьНайти документ или фо\"",
+    "main#main > section.border-t.border-line \"Как нас найтиАдрес070000, г. Усть-Камено\"",
+    "main#main > section.container-page.section:nth-of-type(4) \"Сегодня в истории ВКОПодробнее Ближайшие\"",
+    "main#main > section.container-page.section:nth-of-type(6) \"Новости и событияВсе 10 ноября 2026 г.За\"",
+    "main#main > section.border-y.border-line \"История в документахВсе Оцифрованные фот\""
+   ]
+  },
+  {
+   "check": "section-height",
+   "where": "div#root > div.flex.min-h-screen > footer.mt-16.border-t \"Государственный архив ВКОАдрес: 070000, \"",
+   "msg": "the section's content does not fit it: its lowest content ends 816px below its top, past 782px (the section less 72px of bottom padding) (SR-2)",
+   "fix": "fit the content above the section's bottom padding (--padb), or make it two screens (.g2) in two groups",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "section-height"
+   ],
+   "wheres": [
+    "div#root > div.flex.min-h-screen > footer.mt-16.border-t \"Государственный архив ВКОАдрес: 070000, \""
+   ]
+  },
+  {
+   "check": "one-section",
+   "where": "h2#h-visit \"Как нас найти\"",
+   "msg": "the screen at scroll 2700px (stride 3) shows 334px of section 5 and the heading of section 5 whole and the content of 2 sections, over 24px each beside section 4: a screen shows one section (another may peek 8px, 24px WARN) (SR-4)",
+   "fix": "make each section exactly one screen or two, so a screen shows one section and no neighbour peeks",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "one-section"
+   ],
+   "wheres": [
+    "h2#h-visit \"Как нас найти\""
+   ]
+  },
+  {
+   "check": "one-section",
+   "where": "h2#h-history \"История в документах\"",
+   "msg": "the screen at scroll 979px (the top of section 2) shows 324px of section 3 and the heading of section 3 whole and the content of 2 sections, over 24px each beside section 2: a screen shows one section (another may peek 8px, 24px WARN) (SR-4)",
+   "fix": "make each section exactly one screen or two, so a screen shows one section and no neighbour peeks",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "one-section"
+   ],
+   "wheres": [
+    "h2#h-history \"История в документах\""
+   ]
+  },
+  {
+   "check": "one-section",
+   "where": "h2#h-news \"Новости и события\"",
+   "msg": "the screen at scroll 3266px (the top of section 5) shows 321px of section 6 and the heading of section 6 whole and the content of 2 sections, over 24px each beside section 5: a screen shows one section (another may peek 8px, 24px WARN) (and 7 more like it: scroll 2620px, scroll 3600px, scroll 900px) (SR-4)",
+   "fix": "make each section exactly one screen or two, so a screen shows one section and no neighbour peeks",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "one-section"
+   ],
+   "wheres": [
+    "h2#h-news \"Новости и события\""
+   ]
+  },
+  {
+   "check": "one-heading",
+   "where": "footer.mt-16.border-t > div.container-page.grid > nav > h2 \"Разделы сайта\"",
+   "msg": "the section holds 3 h2 headings: one per section, first in its .wrap (SR-5)",
+   "fix": "give each section one h2, first in its .wrap, and the hero only its h1",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "one-heading"
+   ],
+   "wheres": [
+    "footer.mt-16.border-t > div.container-page.grid > nav > h2 \"Разделы сайта\""
+   ]
+  },
+  {
+   "check": "one-heading",
+   "where": "h2#h-history \"История в документах\"",
+   "msg": "headings of two sections show whole on one screen at 17 of 92 scroll positions (18.5%; at scroll 800, 850, 900, 950px), here with \"Чем мы можем помочь\": at most 3% on a desktop (SR-5)",
+   "fix": "make the sections one screen tall so their headings sit a screen apart and two never share one",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "one-heading"
+   ],
+   "wheres": [
+    "h2#h-history \"История в документах\""
+   ]
+  },
+  {
+   "check": "container-edges",
+   "where": "div#root > div.flex.min-h-screen > header.bg-bg \"ҚазРусEngСлабовидящимВерсия для слабовид\"",
+   "msg": "the nav's content runs 72px from the left and 81px from the right (read from its outermost blocks: no .wrap): the page's container starts at 81px; 72 and 81px are not one margin (one container, equal margins, 2px either way) (SR-6)",
+   "fix": "use one container on every section and the nav (.wrap): one margin left and right, 64-120px on a desktop, 16-24px on a phone",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "container-edges"
+   ],
+   "wheres": [
+    "div#root > div.flex.min-h-screen > header.bg-bg \"ҚазРусEngСлабовидящимВерсия для слабовид\""
+   ]
+  },
+  {
+   "check": "container-edges",
+   "where": "div#root \"Перейти к содержаниюҚазРусEngСлабовидящи\"",
+   "msg": "a <div> at the top of the page, outside header.nav, main, footer.closing and nav.actionbar (SR-6)",
+   "fix": "build the page as header.nav, a main of sections (each one in-flow .wrap plus background layers) and footer.closing",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "container-edges"
+   ],
+   "wheres": [
+    "div#root \"Перейти к содержаниюҚазРусEngСлабовидящи\""
+   ]
+  },
+  {
+   "check": "container-edges",
+   "where": "main#main > section.hero-band.bg-primary \"Государственный архив Восточно-Казахстан\"",
+   "msg": "the section needs exactly one in-flow child .wrap (it has 1 in-flow child, 0 .wrap) (and 6 more like it: \"Чем мы можем помочьНайти\", \"История в документахВсе \", \"Сегодня в истории ВКОПод\") (SR-6)",
+   "fix": "build the page as header.nav, a main of sections (each one in-flow .wrap plus background layers) and footer.closing",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "container-edges"
+   ],
+   "wheres": [
+    "main#main > section.hero-band.bg-primary \"Государственный архив Восточно-Казахстан\""
+   ]
+  },
+  {
+   "check": "container-edges",
+   "where": "div#root > div.flex.min-h-screen > header.bg-bg > div.border-b.border-line:nth-of-type(1) \"ҚазРусEngСлабовидящимВерсия для слабовид\"",
+   "msg": "a box runs 0-1440px, outside the container lines of the nav at 81-1359px: full width is for background layers and grounds only (SR-6)",
+   "fix": "keep it inside the container lines (.wrap): full width is for background layers and grounds only",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "container-edges"
+   ],
+   "wheres": [
+    "div#root > div.flex.min-h-screen > header.bg-bg > div.border-b.border-line:nth-of-type(1) \"ҚазРусEngСлабовидящимВерсия для слабовид\""
+   ]
+  },
+  {
+   "check": "container-edges",
+   "where": "div#root > div.flex.min-h-screen > header.bg-bg > div.border-b.border-line:nth-of-type(2) \"Государственный архив ВКО Электронный ка\"",
+   "msg": "a box runs 0-1440px, outside the container lines of the nav at 81-1359px: full width is for background layers and grounds only (and 4 more like it: \"Об архивеЭлектронный кат\", \"КГУ «Государственный арх\", \"Қаз\") (SR-6)",
+   "fix": "keep it inside the container lines (.wrap): full width is for background layers and grounds only",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "container-edges"
+   ],
+   "wheres": [
+    "div#root > div.flex.min-h-screen > header.bg-bg > div.border-b.border-line:nth-of-type(2) \"Государственный архив ВКО Электронный ка\""
+   ]
+  },
+  {
+   "check": "container-edges",
+   "where": "h2#f-gov \"Государственные ресурсы\"",
+   "msg": "the h2 starts 939px right of the container's left: every h1 and h2 starts on it, 2px either way (SR-6)",
+   "fix": "start the text on the container's left, or on the one split line every split shares",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "container-edges"
+   ],
+   "wheres": [
+    "h2#f-gov \"Государственные ресурсы\""
+   ]
+  },
+  {
+   "check": "container-edges",
+   "where": "footer.mt-16.border-t > div.container-page.grid > nav > h2 \"Разделы сайта\"",
+   "msg": "the h2 starts 554px right of the container's left: every h1 and h2 starts on it, 2px either way (and 3 more like it: x 153, x 119, x 96) (SR-6)",
+   "fix": "start the text on the container's left, or on the one split line every split shares",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "container-edges"
+   ],
+   "wheres": [
+    "footer.mt-16.border-t > div.container-page.grid > nav > h2 \"Разделы сайта\""
+   ]
+  },
+  {
+   "check": "container-edges",
+   "where": "div#root > div.flex.min-h-screen > footer.mt-16.border-t > div.border-t.border-line \"КГУ «Государственный архив Восточно-Каза\"",
+   "msg": "a box over half the container wide runs 0-1440px, not on the container's lines at 81-1359px (SR-6)",
+   "fix": "run the picture or box from the container's left line to its right line, or put it in a row or a split",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "container-edges"
+   ],
+   "wheres": [
+    "div#root > div.flex.min-h-screen > footer.mt-16.border-t > div.border-t.border-line \"КГУ «Государственный архив Восточно-Каза\""
+   ]
+  },
+  {
+   "check": "split-pair",
+   "where": "main#main > section.hero-band.bg-primary > div.container-page.grid \"Государственный архив Восточно-Казахстан\"",
+   "msg": "the two columns of the split start 90px apart at the top (centred on each other): a split's columns are top-aligned, 8px either way (SR-8)",
+   "fix": "top-align both columns of the split (align-items: start)",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "split-pair"
+   ],
+   "wheres": [
+    "main#main > section.hero-band.bg-primary > div.container-page.grid \"Государственный архив Восточно-Казахстан\""
+   ]
+  },
+  {
+   "check": "split-pair",
+   "where": "main#main > section.border-t.border-line > div.container-page.section \"Как нас найтиАдрес070000, г. Усть-Камено\"",
+   "msg": "the two columns of the split start 27px apart at the top: a split's columns are top-aligned, 8px either way (SR-8)",
+   "fix": "top-align both columns of the split (align-items: start)",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "split-pair"
+   ],
+   "wheres": [
+    "main#main > section.border-t.border-line > div.container-page.section \"Как нас найтиАдрес070000, г. Усть-Камено\""
+   ]
+  },
+  {
+   "check": "nav",
+   "where": "header.bg-bg > div.border-b.border-line:nth-of-type(2) > div.container-page.flex > a.flex.flex-1 \"Государственный архив ВКО\"",
+   "msg": "\"Государственный архив ВКО\" sits outside the nav bar div#root > div.flex.min-h-screen > header.bg-bg > div.border-b.border-line:nth-of-type(1) (0-390px)",
+   "fix": "make the nav one bar from the content's left edge to its right edge, with every link and action inside it",
+   "widths": [
+    390
+   ],
+   "from": "consistency",
+   "ids": [
+    "nav"
+   ],
+   "wheres": [
+    "header.bg-bg > div.border-b.border-line:nth-of-type(2) > div.container-page.flex > a.flex.flex-1 \"Государственный архив ВКО\""
+   ]
+  },
+  {
+   "check": "nav",
+   "where": "header.bg-bg > div.border-b.border-line:nth-of-type(2) > div.container-page.flex > button.btn-ghost.shrink-0 \"Меню\"",
+   "msg": "\"Меню\" sits outside the nav bar div#root > div.flex.min-h-screen > header.bg-bg > div.border-b.border-line:nth-of-type(1) (0-390px)",
+   "fix": "make the nav one bar from the content's left edge to its right edge, with every link and action inside it",
+   "widths": [
+    390
+   ],
+   "from": "consistency",
+   "ids": [
+    "nav"
+   ],
+   "wheres": [
+    "header.bg-bg > div.border-b.border-line:nth-of-type(2) > div.container-page.flex > button.btn-ghost.shrink-0 \"Меню\""
+   ]
+  },
+  {
+   "check": "spill",
+   "where": "div.h-72.w-full > div.leaflet-pane.leaflet-map-pane > div.leaflet-pane.leaflet-overlay-pane > svg.leaflet-zoom-animated",
+   "msg": "runs 123px past the right edge of the panel it sits on (div.leaflet-pane.leaflet-tile-pane > div.leaflet-layer > div.leaflet-tile-container.leaflet-zoom-animated > img.leaflet-tile.leaflet-tile-loaded:nth-of-type(1))",
+   "fix": "keep the box inside the panel it starts on: shrink it, or grow the panel to hold it",
+   "widths": [
+    390
+   ],
+   "from": "consistency",
+   "ids": [
+    "spill"
+   ],
+   "wheres": [
+    "div.h-72.w-full > div.leaflet-pane.leaflet-map-pane > div.leaflet-pane.leaflet-overlay-pane > svg.leaflet-zoom-animated"
+   ]
+  },
+  {
+   "check": "tap-size",
+   "where": "div.flex.gap-3:nth-of-type(3) > div > dd > a \"8 (7232) 25-59-76\"",
+   "msg": "a 169x24px tap target: 7px from the next one (\"Помощник\"), so a thumb lands on the wrong one",
+   "fix": "make every link and control outside running text 44px tall on a phone: display: inline-flex; align-items: center; min-height: 44px (a footer list then needs no gap), a 44px small button, or a transparent ::before laid past the box",
+   "widths": [
+    390
+   ],
+   "from": "consistency",
+   "ids": [
+    "tap-size"
+   ],
+   "wheres": [
+    "div.flex.gap-3:nth-of-type(3) > div > dd > a \"8 (7232) 25-59-76\""
+   ]
+  },
+  {
+   "check": "no-visual",
+   "where": "main#main > section.hero-band.bg-primary \"Государственный архив Восточно-Казахстан\"",
+   "msg": "no picture, effect or mock in this section; a feature section needs a visual",
+   "fix": "give the section a visual: a UI fragment on a ground, real icons, or a photograph that fits",
+   "widths": [
+    390
+   ],
+   "from": "consistency",
+   "ids": [
+    "no-visual"
+   ],
+   "wheres": [
+    "main#main > section.hero-band.bg-primary \"Государственный архив Восточно-Казахстан\""
+   ]
+  },
+  {
+   "check": "hero-fill",
+   "where": "main#main > section.container-page.section:nth-of-type(2) \"Чем мы можем помочь\"",
+   "msg": "the next section shows on the first screen: it starts at 886px on a 1024px screen (the hero ends at 886px)",
+   "fix": "let the hero fill the first screen alone (min-height: 100svh, less above it): nothing of the next section on load",
+   "widths": [
+    768
+   ],
+   "from": "consistency",
+   "ids": [
+    "hero-fill"
+   ],
+   "wheres": [
+    "main#main > section.container-page.section:nth-of-type(2) \"Чем мы можем помочь\""
+   ]
+  },
+  {
+   "check": "tap-size",
+   "where": "section:nth-of-type(1) > ul.mt-4.space-y-3 > li.flex.gap-3:nth-of-type(2) > a \"8 (7232) 25-59-76\"",
+   "msg": "a 150x29px tap target: 0px from the next one (\"Помощник\"), so a thumb lands on the wrong one",
+   "fix": "make every link and control outside running text 44px tall on a phone: display: inline-flex; align-items: center; min-height: 44px (a footer list then needs no gap), a 44px small button, or a transparent ::before laid past the box",
+   "widths": [
+    320
+   ],
+   "from": "consistency",
+   "ids": [
+    "tap-size"
+   ],
+   "wheres": [
+    "section:nth-of-type(1) > ul.mt-4.space-y-3 > li.flex.gap-3:nth-of-type(2) > a \"8 (7232) 25-59-76\""
+   ]
+  },
+  {
+   "check": "container",
+   "where": "page",
+   "msg": "no .wrap",
+   "fix": "put the content in one .wrap",
+   "widths": [
+    1440,
+    390
+   ],
+   "from": "layout",
+   "ids": [
+    "container"
+   ],
+   "wheres": [
+    "page"
+   ]
+  }
+ ],
+ "waived": [
+  {
+   "check": "nav-covers",
+   "where": "div#root > div.flex.min-h-screen > button.btn-primary.btn-lg \"Помощник\"",
+   "msg": "sits on top of the text \"Набережная Иртыша летом\" while the page scrolls: part of the line shows beside it",
+   "fix": "make the fixed nav one opaque band across the whole screen, or let it scroll away with the page",
+   "widths": [
+    1440,
+    390
+   ],
+   "from": "consistency",
+   "ids": [
+    "nav-covers"
+   ],
+   "wheres": [
+    "div#root > div.flex.min-h-screen > button.btn-primary.btn-lg \"Помощник\""
+   ],
+   "reason": "the user asked for a highly discoverable assistant; the floating button is fixed bottom-right and the footer reserves space under it"
+  },
+  {
+   "check": "street-number",
+   "where": "script[type=\"application/ld+json\"] \"ул. Бейбітшілік, 26/1\"",
+   "msg": "a streetAddress with a house number in the JSON-LD: \"ул. Бейбітшілік, 26/1\"; a real door, which the brief does not give",
+   "fix": "print the street and the district only (\"Weserstraße, Berlin-Neukölln\"): no house number, unless the brief gives the address",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "street-number"
+   ],
+   "wheres": [
+    "script[type=\"application/ld+json\"] \"ул. Бейбітшілік, 26/1\""
+   ],
+   "reason": "real public address of the state archive from the client's own contacts document (docs/source), required on a government site"
+  },
+  {
+   "check": "postcode",
+   "where": "script[type=\"application/ld+json\"] \"070000\"",
+   "msg": "a postalCode in the JSON-LD: \"070000\"; with the street it points at one building, which the brief does not give",
+   "fix": "drop the postcode: the street and the district say where it is (copy.md, Address)",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "postcode"
+   ],
+   "wheres": [
+    "script[type=\"application/ld+json\"] \"070000\""
+   ],
+   "reason": "real postcode of the state archive from the client's contacts document, part of its official address"
+  },
+  {
+   "check": "phone-number",
+   "where": "div.flex.gap-3:nth-of-type(3) > div > dd > a \"tel:87232255976\"",
+   "msg": "a tel: link calls a number in a real dialable format: \"tel:87232255976\"; a visitor can dial it and reach a stranger (and 2 more like it: div.container-page.section > div:nth-of-type(1) > div.mt-8.flex > a.btn-primary.btn-lg, section:nth-of-type(1) > ul.mt-4.space-y-3 > li.flex.gap-3:nth-of-type(2) > a)",
+   "fix": "drop the number and its tel: link (a \"Request a call\" form may stand in), unless the brief gives the number",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "phone-number"
+   ],
+   "wheres": [
+    "div.flex.gap-3:nth-of-type(3) > div > dd > a \"tel:87232255976\""
+   ],
+   "reason": "real reception phone of the archive from the client's contacts document; elderly visitors must be able to call"
+  },
+  {
+   "check": "phone-number",
+   "where": "script[type=\"application/ld+json\"] \"+7 7232 25-59-76\"",
+   "msg": "a telephone in a real dialable format in the JSON-LD: \"+7 7232 25-59-76\"; a visitor can dial it and reach a stranger",
+   "fix": "drop the number and its tel: link (a \"Request a call\" form may stand in), unless the brief gives the number",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "phone-number"
+   ],
+   "wheres": [
+    "script[type=\"application/ld+json\"] \"+7 7232 25-59-76\""
+   ],
+   "reason": "real reception phone in the archive's schema.org record, taken from the client's contacts document"
+  }
+ ],
+ "warnCount": 26,
+ "openTold": true
+}

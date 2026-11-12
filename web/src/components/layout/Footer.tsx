@@ -93,7 +93,7 @@ export function Footer() {
         </section>
       </div>
       <div className="border-t border-line">
-        <div className="container-page space-y-2 py-6 text-sm text-muted">
+        <div className="container-page space-y-2 pb-28 pt-6 text-sm text-muted sm:pb-8">
           <p>{t("org.full")}</p>
           <p>{t("footer.infoOnly")}</p>
           <p>

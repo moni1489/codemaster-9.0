@@ -24,7 +24,7 @@ SECURITY_HEADERS = {
     "X-Frame-Options": "DENY",
     "Referrer-Policy": "strict-origin-when-cross-origin",
     "Strict-Transport-Security": "max-age=31536000",
-    "Permissions-Policy": "geolocation=(self), camera=(), microphone=()",
+    "Permissions-Policy": "geolocation=(self), camera=(), microphone=(self)",
 }
 
 

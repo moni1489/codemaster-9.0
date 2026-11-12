@@ -56,7 +56,7 @@ export function FeedbackForm() {
 
   return (
     <form onSubmit={submit} className="card space-y-4 p-5" aria-labelledby="feedback-h" data-form="feedback">
-      <h2 id="feedback-h" className="text-xl">{t("feedback.title")}</h2>
+      <h2 id="feedback-h">{t("feedback.title")}</h2>
       <div role="note" className="flex gap-2 rounded-lg border border-warn/50 bg-warn/10 p-3 text-sm">
         <Icon name="info" size={18} className="mt-0.5 shrink-0 text-warn" />
         <p>
@@ -102,17 +102,17 @@ export function FaqPage() {
   useTitle(t("faqPage.title"), t("faqPage.lead"));
   const q = useQuery({ queryKey: ["faq", lang], queryFn: () => apiGet<FaqGroup[]>("/faq", lang) });
   return (
-    <div className="container-page py-6">
+    <div className="container-page py-8 sm:py-10">
       <Breadcrumbs items={[{ label: t("faqPage.title") }]} />
-      <h1 className="text-3xl">{t("faqPage.title")}</h1>
-      <p className="mt-2 text-muted">{t("faqPage.lead")}</p>
+      <h1>{t("faqPage.title")}</h1>
+      <p className="lead mt-2">{t("faqPage.lead")}</p>
       <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_24rem]">
         <div className="space-y-8">
           {q.isLoading && <Loading />}
           {q.isError && <ErrorState error={q.error} onRetry={() => void q.refetch()} />}
           {q.data?.map((g) => (
             <section key={g.slug} aria-labelledby={`faq-${g.slug}`}>
-              <h2 id={`faq-${g.slug}`} className="text-2xl">{g.title}</h2>
+              <h2 id={`faq-${g.slug}`}>{g.title}</h2>
               <div className="mt-3 space-y-2">
                 {g.items.map((item) => (
                   <details key={item.id} className="card group p-4">

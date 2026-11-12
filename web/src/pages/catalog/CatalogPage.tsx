@@ -109,7 +109,7 @@ export function CatalogPage() {
     extra: { inputMode?: "numeric"; maxLength?: number; fullLabel?: string } = {},
   ) => (
     <div>
-      <label htmlFor={`f-${k}`} className="mb-1 block truncate text-sm font-medium" title={extra.fullLabel}>
+      <label htmlFor={`f-${k}`} className="mb-1 block truncate font-medium" title={extra.fullLabel}>
         {label}
         {extra.fullLabel && <span className="sr-only"> ({extra.fullLabel})</span>}
       </label>
@@ -127,18 +127,18 @@ export function CatalogPage() {
   const data = result.data;
 
   return (
-    <div className="container-page py-6">
+    <div className="container-page py-8 sm:py-10">
       <Breadcrumbs items={[{ label: t("catalog.title") }]} />
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-3xl">{t("catalog.title")}</h1>
-          <p className="mt-1 max-w-3xl text-muted">{t("catalog.lead")}</p>
+          <h1>{t("catalog.title")}</h1>
+          <p className="lead mt-2">{t("catalog.lead")}</p>
         </div>
-        <div className="flex gap-2">
-          <Link to={lp("/catalog/funds")} className="btn-ghost">
-            <Icon name="folder" size={16} /> {t("catalog.browseFunds")}
+        <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto">
+          <Link to={lp("/catalog/funds")} className="btn-ghost px-3 sm:px-6">
+            <Icon name="folder" size={20} /> {t("catalog.browseFunds")}
           </Link>
-          <Link to={lp("/catalog/funds?personal=true")} className="btn-ghost">
+          <Link to={lp("/catalog/funds?personal=true")} className="btn-ghost px-3 sm:px-6">
             {t("catalog.personalFunds")}
           </Link>
         </div>
@@ -152,22 +152,24 @@ export function CatalogPage() {
           <input
             id="f-q"
             type="search"
-            className="input text-base"
+            className="input input-lg"
+            enterKeyHint="search"
             placeholder={t("catalog.queryPlaceholder")}
             value={draft.q}
             onChange={(e) => setDraft((d) => ({ ...d, q: e.target.value }))}
             maxLength={300}
           />
-          <button type="submit" className="btn-primary">
-            <Icon name="search" size={18} />
+          <button type="submit" className="btn-primary btn-lg px-5 sm:px-8">
+            <Icon name="search" size={22} />
             <span className="hidden sm:inline">{t("header.search")}</span>
+            <span className="sr-only sm:hidden">{t("header.search")}</span>
           </button>
         </div>
 
         <div className="mt-3 flex items-center justify-between lg:hidden">
           <button
             type="button"
-            className="btn-ghost"
+            className="btn-ghost w-full sm:w-auto"
             aria-expanded={showFilters}
             aria-controls="catalog-filters"
             onClick={() => setShowFilters((v) => !v)}
@@ -207,7 +209,7 @@ export function CatalogPage() {
             <fieldset className="card space-y-2 p-4">
               <legend>{t("catalog.periods.label")}</legend>
               {PERIODS.map((p) => (
-                <label key={p.key} className="flex items-center gap-2 text-sm">
+                <label key={p.key} className="check-row">
                   <input
                     type="radio"
                     name="period"
@@ -225,7 +227,7 @@ export function CatalogPage() {
               {(sp.has("period_from") || sp.has("period_to")) && (
                 <button
                   type="button"
-                  className="text-sm text-primary underline"
+                  className="min-h-11 text-primary underline"
                   onClick={() =>
                     update((next) => {
                       next.delete("period_from");
@@ -243,14 +245,14 @@ export function CatalogPage() {
               {CATEGORIES.map((c) => {
                 const count = facets.data?.categories.find((f) => f.value === c)?.count ?? 0;
                 return (
-                  <label key={c} className="flex items-center gap-2 text-sm">
+                  <label key={c} className="check-row">
                     <input
                       type="checkbox"
                       checked={sp.getAll("category").includes(c)}
                       onChange={() => toggleList("category", c)}
                     />
                     <span className="flex-1">{t(`categories.${c}`)}</span>
-                    <span className="text-xs text-muted">{count}</span>
+                    <span className="text-sm text-muted">{count}</span>
                   </label>
                 );
               })}
@@ -259,14 +261,14 @@ export function CatalogPage() {
             <fieldset className="card space-y-2 p-4">
               <legend>{t("catalog.fields.docType")}</legend>
               {(facets.data?.doc_types ?? []).map((f) => (
-                <label key={f.value} className="flex items-center gap-2 text-sm">
+                <label key={f.value} className="check-row">
                   <input
                     type="checkbox"
                     checked={sp.getAll("doc_type").includes(f.value)}
                     onChange={() => toggleList("doc_type", f.value)}
                   />
                   <span className="flex-1">{t(`docTypes.${f.value}`)}</span>
-                  <span className="text-xs text-muted">{f.count}</span>
+                  <span className="text-sm text-muted">{f.count}</span>
                 </label>
               ))}
             </fieldset>
@@ -289,7 +291,7 @@ export function CatalogPage() {
                   </option>
                 ))}
               </select>
-              <label className="flex items-center gap-2 text-sm">
+              <label className="check-row">
                 <input
                   type="checkbox"
                   checked={sp.get("personal") === "true"}
@@ -297,7 +299,7 @@ export function CatalogPage() {
                 />
                 {t("catalog.fields.personal")}
               </label>
-              <label className="flex items-center gap-2 text-sm">
+              <label className="check-row">
                 <input
                   type="checkbox"
                   checked={sp.get("has_copy") === "true"}
@@ -311,13 +313,13 @@ export function CatalogPage() {
           {/* результаты */}
           <section aria-labelledby="results-heading" aria-busy={result.isFetching}>
             <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-              <h2 id="results-heading" className="text-lg font-semibold" aria-live="polite">
+              <h2 id="results-heading" className="text-[1.125rem]" aria-live="polite">
                 {data ? t("catalog.found", { count: data.total }) : t("a11y.loading")}
               </h2>
-              <div className="flex items-center gap-2">
+              <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
                 {hasAny && (
                   <button type="button" className="btn-ghost" onClick={() => setSp(new URLSearchParams())}>
-                    <Icon name="reset" size={16} /> {t("catalog.resetAll")}
+                    <Icon name="reset" size={18} /> {t("catalog.resetAll")}
                   </button>
                 )}
                 <label htmlFor="f-sort" className="sr-only">
@@ -325,7 +327,7 @@ export function CatalogPage() {
                 </label>
                 <select
                   id="f-sort"
-                  className="input w-auto"
+                  className="input sm:w-auto"
                   value={sp.get("sort") ?? "relevance"}
                   onChange={(e) => setOne("sort", e.target.value === "relevance" ? null : e.target.value)}
                 >
@@ -342,9 +344,6 @@ export function CatalogPage() {
               <p className="mb-3 rounded-lg border border-warn/50 bg-warn/10 px-3 py-2 text-sm" role="status">
                 {t("catalog.fuzzy")}
               </p>
-            )}
-            {data && data.expanded_terms.length > 0 && !data.fuzzy && (
-              <p className="mb-3 text-sm text-muted">{t("catalog.synonyms")}</p>
             )}
 
             {result.isLoading && <Loading />}

@@ -1,6 +1,6 @@
 import "leaflet/dist/leaflet.css";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import { CircleMarker, MapContainer, TileLayer, Tooltip, useMap } from "react-leaflet";
 import { useLang } from "../app/lang";
 import { useT } from "../app/useT";
@@ -82,8 +82,8 @@ function RoutePanel({ b }: { b: Branch }) {
       <label className="mt-2 block text-sm" htmlFor="route-from">{t("map.from")}</label>
       <input id="route-from" className="input mt-1" list="places" value={from} placeholder={t("map.fromPlaceholder")} onChange={(e) => { setGeo(null); setFrom(e.target.value); }} />
       <datalist id="places">{PLACES.map((p) => <option key={p.names[0]} value={p.names[0]} />)}</datalist>
-      <button type="button" className="btn-ghost mt-2 text-xs" onClick={locate}>
-        <Icon name="pin" size={14} /> {t("map.myLocation")}
+      <button type="button" className="btn-ghost mt-3 w-full" onClick={locate}>
+        <Icon name="pin" size={18} /> {t("map.myLocation")}
       </button>
       <p className="mt-1 text-xs text-muted">{t("map.geoConsent")}</p>
       {geoError && <p className="mt-2 text-sm text-warn" role="alert">{t("map.geoDenied")}</p>}
@@ -92,12 +92,21 @@ function RoutePanel({ b }: { b: Branch }) {
       <p className="mt-3 text-sm">{t("map.openIn")}:</p>
       <ul className="mt-1 flex flex-wrap gap-2">
         {links.map((l) => (
-          <li key={l.name}><ExternalLink href={l.url} className="btn-ghost text-sm">{l.name}</ExternalLink></li>
+          <li key={l.name}><ExternalLink href={l.url} className="btn-ghost">{l.name}</ExternalLink></li>
         ))}
       </ul>
     </section>
   );
 }
+
+// Широкий экран: подробности филиала — в боковой колонке; телефон/планшет — прямо под выбранной карточкой.
+const WIDE = "(min-width: 1024px)";
+const subscribeWide = (cb: () => void) => {
+  const m = window.matchMedia(WIDE);
+  m.addEventListener("change", cb);
+  return () => m.removeEventListener("change", cb);
+};
+const useWide = () => useSyncExternalStore(subscribeWide, () => window.matchMedia(WIDE).matches, () => true);
 
 export function BranchesPage() {
   const { t } = useT();
@@ -116,17 +125,33 @@ export function BranchesPage() {
     [q.data, search, type],
   );
   const sel = list.find((b) => b.slug === selected) ?? null;
+  const wide = useWide();
+  const details = sel && (
+    <section className="card border-2 border-primary p-4 sm:p-5" aria-labelledby="sel-h">
+      <p className="text-sm text-muted">{t("map.selected")}</p>
+      <h2 id="sel-h" className="text-[1.25rem]">{sel.name}</h2>
+      <TranslationNotice info={sel.translation} />
+      <ul className="mt-3 space-y-3">
+        <li className="flex gap-2"><Icon name="pin" size={20} className="mt-1 shrink-0 text-primary" />{sel.address}, {sel.locality}</li>
+        {sel.phone && <li className="flex gap-2"><Icon name="phone" size={20} className="mt-1 shrink-0 text-primary" /><a href={`tel:${sel.phone.replace(/[^\d+]/g, "")}`}>{sel.phone}</a></li>}
+        {sel.email && <li className="flex gap-2"><Icon name="mail" size={20} className="mt-1 shrink-0 text-primary" /><a href={`mailto:${sel.email}`}>{sel.email}</a></li>}
+        {sel.hours && <li className="flex gap-2"><Icon name="clock" size={20} className="mt-1 shrink-0 text-primary" />{sel.hours}</li>}
+        {sel.director && <li>{t("map.director")}: {sel.director}</li>}
+      </ul>
+      <RoutePanel key={sel.slug} b={sel} />
+    </section>
+  );
   return (
-    <div className="container-page py-6">
+    <div className="container-page py-8 sm:py-10">
       <Breadcrumbs items={[{ label: t("map.title") }]} />
-      <h1 className="text-3xl">{t("map.title")}</h1>
-      <p className="mt-1 text-muted">{t("map.lead")}</p>
-      <div className="mt-4 flex flex-wrap gap-2">
+      <h1>{t("map.title")}</h1>
+      <p className="lead mt-2">{t("map.lead")}</p>
+      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
         <label className="sr-only" htmlFor="br-q">{t("map.search")}</label>
-        <input id="br-q" type="search" className="input max-w-sm" placeholder={t("map.search")} value={search} onChange={(e) => setSearch(e.target.value)} />
-        <div role="group" aria-label={t("catalog.fields.branch")} className="flex gap-1">
+        <input id="br-q" type="search" className="input sm:max-w-sm" placeholder={t("map.search")} value={search} onChange={(e) => setSearch(e.target.value)} />
+        <div role="group" aria-label={t("catalog.fields.branch")} className="grid grid-cols-3 gap-2 sm:flex">
           {(["", "main", "branch"] as const).map((v) => (
-            <button key={v || "all"} type="button" aria-pressed={type === v} className={type === v ? "btn-primary" : "btn-ghost"} onClick={() => setType(v)}>
+            <button key={v || "all"} type="button" aria-pressed={type === v} className={`${type === v ? "btn-primary" : "btn-ghost"} px-3 sm:px-6`} onClick={() => setType(v)}>
               {v === "" ? t("map.all") : t(`map.${v}`)}
             </button>
           ))}
@@ -137,7 +162,7 @@ export function BranchesPage() {
       {q.data && (
         <div className="mt-4 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_24rem]">
           <div className="space-y-3">
-            <div className="h-[420px] overflow-hidden rounded-xl border border-line" aria-label={t("map.title")}>
+            <div className="h-[320px] overflow-hidden rounded-xl border border-line sm:h-[420px]" aria-label={t("map.title")}>
               <MapContainer center={[49.6, 83.2]} zoom={6} scrollWheelZoom={false} className="h-full w-full">
                 <TileLayer
                   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -149,7 +174,7 @@ export function BranchesPage() {
                     key={b.slug}
                     center={[b.lat as number, b.lon as number]}
                     radius={b.type === "main" ? 11 : 8}
-                    pathOptions={{ color: b.slug === selected ? "#965014" : "#0e4c5c", fillOpacity: 0.8, dashArray: b.coords_verified ? undefined : "4" }}
+                    pathOptions={{ color: b.slug === selected ? "#b45309" : "#1a4be0", fillOpacity: 0.8 }}
                     eventHandlers={{ click: () => setSelected(b.slug) }}
                   >
                     <Tooltip>{b.short_name}</Tooltip>
@@ -162,37 +187,21 @@ export function BranchesPage() {
             {list.length === 0 && <p>{t("map.nothing")}</p>}
             <ul className="grid gap-2 md:grid-cols-2">
               {list.map((b) => (
-                <li key={b.slug}>
-                  <button type="button" onClick={() => setSelected(b.slug)} aria-pressed={b.slug === selected} className={`card block w-full p-3 text-left ${b.slug === selected ? "border-primary" : ""}`}>
-                    <span className="font-medium">{b.short_name}</span>
-                    <span className="block text-sm text-muted">{b.address}</span>
-                    {b.lat === null && <span className="block text-xs text-warn">{t("map.noCoords")}</span>}
+                <li key={b.slug} className={!wide && b.slug === selected ? "space-y-2 md:col-span-2" : undefined}>
+                  <button type="button" onClick={() => setSelected(b.slug === selected ? null : b.slug)} aria-pressed={b.slug === selected} className={`card block min-h-[4.5rem] w-full p-4 text-left transition-colors hover:border-ink ${b.slug === selected ? "border-2 border-primary" : ""}`}>
+                    <span className="font-semibold">{b.short_name}</span>
+                    <span className="mt-1 block text-muted">{b.address}</span>
                   </button>
+                  {!wide && b.slug === selected && details}
                 </li>
               ))}
             </ul>
           </div>
-          <aside className="lg:sticky lg:top-4 lg:self-start">
-            {sel ? (
-              <section className="card p-4" aria-labelledby="sel-h">
-                <p className="text-xs uppercase text-muted">{t("map.selected")}</p>
-                <h2 id="sel-h" className="text-xl">{sel.name}</h2>
-                {!sel.coords_verified && <p className="badge mt-2 border-warn/60 text-warn">⚠ {t("map.unverified")}</p>}
-                <TranslationNotice info={sel.translation} />
-                <ul className="mt-3 space-y-2 text-sm">
-                  <li className="flex gap-2"><Icon name="pin" size={16} className="mt-0.5 shrink-0" />{sel.address}, {sel.locality}</li>
-                  {sel.phone && <li className="flex gap-2"><Icon name="phone" size={16} className="mt-0.5 shrink-0" /><a href={`tel:${sel.phone.replace(/[^\d+]/g, "")}`}>{sel.phone}</a></li>}
-                  {sel.email && <li className="flex gap-2"><Icon name="mail" size={16} className="mt-0.5 shrink-0" /><a href={`mailto:${sel.email}`}>{sel.email}</a></li>}
-                  {sel.hours && <li className="flex gap-2"><Icon name="clock" size={16} className="mt-0.5 shrink-0" />{sel.hours}</li>}
-                  {sel.director && <li>{t("map.director")}: {sel.director}</li>}
-                  {sel.lat !== null && <li className="text-xs text-muted">{sel.lat.toFixed(3)}, {sel.lon?.toFixed(3)}</li>}
-                </ul>
-                <RoutePanel key={sel.slug} b={sel} />
-              </section>
-            ) : (
-              <p className="card p-4 text-sm text-muted">{t("map.search")} ↑</p>
-            )}
-          </aside>
+          {wide && (
+            <aside className="sticky top-4 self-start">
+              {details ?? <p className="card p-4 text-muted">{t("map.search")} ↑</p>}
+            </aside>
+          )}
         </div>
       )}
     </div>

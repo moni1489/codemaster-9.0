@@ -98,7 +98,7 @@ export function InDevelopment({ titleKey }: { titleKey: string }) {
   const { t } = useT();
   return (
     <div className="container-page py-8">
-      <h1 className="text-3xl">{t(titleKey)}</h1>
+      <h1>{t(titleKey)}</h1>
       <StateBox icon="info" title={t("common.inDevelopment")} text={t("common.inDevelopmentText")} />
     </div>
   );

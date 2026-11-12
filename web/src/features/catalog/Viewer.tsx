@@ -61,26 +61,26 @@ export function Viewer({ pages, title }: { pages: DocPage[]; title: string }) {
           <p className="text-sm font-medium" aria-live="polite">
             {t("viewer.page", { n: index + 1, total })}
           </p>
-          <div className="flex items-center gap-1">
-            <button type="button" className="btn-ghost px-2 py-1" onClick={() => go(-1)} disabled={index === 0} aria-label={t("common.prev")}>
+          <div className="flex flex-wrap items-center gap-1">
+            <button type="button" className="btn-ghost btn-icon" onClick={() => go(-1)} disabled={index === 0} aria-label={t("common.prev")}>
               <Icon name="left" size={18} />
             </button>
-            <button type="button" className="btn-ghost px-2 py-1" onClick={() => go(1)} disabled={index >= total - 1} aria-label={t("common.next")}>
+            <button type="button" className="btn-ghost btn-icon" onClick={() => go(1)} disabled={index >= total - 1} aria-label={t("common.next")}>
               <Icon name="right" size={18} />
             </button>
-            <span className="mx-1 h-6 w-px bg-line" aria-hidden="true" />
-            <button type="button" className="btn-ghost px-2 py-1" onClick={() => zoomRef.current?.zoomIn()} aria-label={t("viewer.zoomIn")}>
+            <span className="mx-1 hidden h-6 w-px bg-line sm:block" aria-hidden="true" />
+            <button type="button" className="btn-ghost btn-icon" onClick={() => zoomRef.current?.zoomIn()} aria-label={t("viewer.zoomIn")}>
               <Icon name="zoomIn" size={18} />
             </button>
-            <button type="button" className="btn-ghost px-2 py-1" onClick={() => zoomRef.current?.zoomOut()} aria-label={t("viewer.zoomOut")}>
+            <button type="button" className="btn-ghost btn-icon" onClick={() => zoomRef.current?.zoomOut()} aria-label={t("viewer.zoomOut")}>
               <Icon name="zoomOut" size={18} />
             </button>
-            <button type="button" className="btn-ghost px-2 py-1" onClick={() => zoomRef.current?.resetTransform()} aria-label={t("viewer.reset")}>
+            <button type="button" className="btn-ghost btn-icon" onClick={() => zoomRef.current?.resetTransform()} aria-label={t("viewer.reset")}>
               <Icon name="reset" size={18} />
             </button>
             <button
               type="button"
-              className="btn-ghost px-2 py-1"
+              className="btn-ghost btn-icon"
               onClick={toggleFull}
               aria-label={full ? t("viewer.exitFullscreen") : t("viewer.fullscreen")}
             >
@@ -88,7 +88,7 @@ export function Viewer({ pages, title }: { pages: DocPage[]; title: string }) {
             </button>
           </div>
         </div>
-        <div className={full ? "h-[calc(100vh-7rem)]" : "h-[60vh] min-h-[320px]"}>
+        <div className={full ? "h-[calc(100vh-7rem)]" : "h-[55vh] min-h-[320px]"}>
           <TransformWrapper ref={zoomRef} minScale={1} maxScale={8} centerOnInit wheel={{ step: 0.15 }} doubleClick={{ mode: "zoomIn" }}>
             <TransformComponent wrapperStyle={{ width: "100%", height: "100%" }} contentStyle={{ width: "100%", height: "100%" }}>
               <img
@@ -96,6 +96,7 @@ export function Viewer({ pages, title }: { pages: DocPage[]; title: string }) {
                 alt={`${title} — ${t("viewer.page", { n: index + 1, total })}`}
                 className="h-full w-full object-contain"
                 draggable={false}
+                data-keep
               />
             </TransformComponent>
           </TransformWrapper>
@@ -121,7 +122,7 @@ export function Viewer({ pages, title }: { pages: DocPage[]; title: string }) {
           </ul>
         )}
       </div>
-      <p className="px-3 py-2 text-xs text-muted">{t("viewer.hint")}</p>
+      <p className="px-3 py-2 text-sm text-muted">{t("viewer.hint")}</p>
     </section>
   );
 }
