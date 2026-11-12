@@ -288,18 +288,6 @@ export function AssistantChat({ compact = false }: { compact?: boolean }) {
             ) : (
               <p className="text-muted">{t("assistant.lead")}</p>
             )}
-            <div>
-              <p className="font-semibold">{t("assistant.examples")}</p>
-              <ul className="mt-1 space-y-1">
-                {(["ex1", "ex2", "ex3"] as const).map((k) => (
-                  <li key={k}>
-                    <button type="button" className="min-h-11 text-left text-primary underline" onClick={() => send(t(`assistant.${k}`))}>
-                      {t(`assistant.${k}`)}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
           </div>
         )}
         {turns.map((turn, i) => (

@@ -1,8 +1,8 @@
 import type React from "react";
 import { lazy, Suspense, type ReactNode } from "react";
-import { createBrowserRouter, Navigate, useLocation, useParams } from "react-router-dom";
+import { createBrowserRouter, Navigate, useLocation, useParams, useRouteError } from "react-router-dom";
 import { Layout } from "../components/layout/Layout";
-import { Loading, NotFound } from "../components/ui/States";
+import { ErrorState, Loading, NotFound } from "../components/ui/States";
 import { isLang } from "./lang";
 
 // Разделение кода по маршрутам (ТЗ §7.2)
@@ -71,12 +71,34 @@ function LangGuard({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
+/** После деплоя хэши чанков меняются, и открытая вкладка просит удалённый файл — перезагружаем один раз. */
+function RouteError() {
+  const error = useRouteError();
+  const stale = /module script|dynamically imported module|Failed to fetch/i.test(String(error));
+  let last = 0;
+  try {
+    last = Number(sessionStorage.getItem("chunkReload")) || 0;
+  } catch {
+    /* приватный режим */
+  }
+  if (stale && Date.now() - last > 10_000) {
+    try {
+      sessionStorage.setItem("chunkReload", String(Date.now()));
+    } catch {
+      /* приватный режим */
+    }
+    window.location.reload();
+    return <Loading />;
+  }
+  return <ErrorState error={error} onRetry={() => window.location.reload()} />;
+}
 
 export const router = createBrowserRouter([
   { path: "/", element: <RootRedirect /> },
-  { path: "/admin/login", element: page(<LoginPage />) },
+  { path: "/admin/login", element: page(<LoginPage />), errorElement: <RouteError /> },
   {
     path: "/admin",
+    errorElement: <RouteError />,
     element: page(
       <RequireAuth>
         <AdminLayout />
@@ -102,6 +124,7 @@ export const router = createBrowserRouter([
   },
   {
     path: "/:lang",
+    errorElement: <RouteError />,
     element: (
       <LangGuard>
         <Layout />
