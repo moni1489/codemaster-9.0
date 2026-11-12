@@ -136,7 +136,7 @@ async def seed_users(session: AsyncSession, roles: dict[str, Role], branches: di
         ("branch_admin", "branch.altai@demo.vko-archive.kz", "altai"),
     ]
     for role, email, branch_slug in plan:
-        password = secrets.token_urlsafe(12)
+        password = get_settings().demo_password.get_secret_value() or secrets.token_urlsafe(12)
         branch = branches[branch_slug] if branch_slug else None
         name = f"{ROLE_NAMES[role]} (демо)" + (f" — {branch_slug}" if branch_slug else "")
         await create_user(session, roles, role, email, password, branch, name)

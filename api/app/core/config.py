@@ -6,7 +6,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
-from pydantic import Field, SecretStr
+from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 _REPO = Path(__file__).resolve().parents[3]
@@ -46,6 +46,21 @@ class Settings(BaseSettings):
 
     tesseract_cmd: str = "tesseract"
     ocr_langs: str = "rus+kaz+eng"
+
+    # Раздача собранного фронтенда самим API (один контейнер на Render); пусто — не раздавать
+    web_dist_dir: Path | None = None
+    # Пароль всех демо-учёток при автосиде на хостинге (иначе генерируется и печатается в консоль)
+    demo_password: SecretStr = Field(default=SecretStr(""))
+
+    @field_validator("database_url", "test_database_url", mode="before")
+    @classmethod
+    def _asyncpg_scheme(cls, v: str | None) -> str | None:
+        """Render/Heroku отдают postgres:// — приводим к драйверу asyncpg."""
+        if isinstance(v, str):
+            for prefix in ("postgres://", "postgresql://"):
+                if v.startswith(prefix):
+                    return "postgresql+asyncpg://" + v[len(prefix) :]
+        return v
 
     def require_secret(self) -> str:
         value = self.secret_key.get_secret_value()

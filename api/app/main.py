@@ -21,6 +21,7 @@ from app.history_router import router as history_router
 from app.media.router import router as media_router
 from app.public.router import router as public_router
 from app.seo import router as seo_router
+from app.webapp import mount_web
 
 
 def create_app() -> FastAPI:
@@ -60,6 +61,9 @@ def create_app() -> FastAPI:
     app.include_router(cms_router)
     app.include_router(media_router)
     app.include_router(public_router)
+    web_dist = get_settings().web_dist_dir
+    if web_dist:
+        mount_web(app, web_dist)  # последним: SPA-фолбэк ловит остальные пути
     return app
 
 

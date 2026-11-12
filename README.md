@@ -44,6 +44,22 @@ python scripts/dev.py test      # pytest + vitest
 python scripts/dev.py lint      # ruff + mypy + eslint + tsc
 ```
 
+## Деплой на Render (один контейнер)
+
+`Dockerfile` в корне собирает фронтенд и API в один образ; `render.yaml` описывает веб-сервис и PostgreSQL.
+
+1. Запушить репозиторий на GitHub.
+2. Render → **New → Blueprint** → выбрать репозиторий → Apply (создаст `vko-archive` и `vko-archive-db`).
+3. В настройках сервиса задать `DEMO_PASSWORD` (пароль всех демо-учёток) и, при желании, `OPENROUTER_API_KEY`.
+   Если имя сервиса занято — поправить `SITE_URL`.
+4. При старте: миграции → автосид (если хранилище пустое; диск на free-плане временный) → сервер.
+5. Чтобы бесплатный инстанс не засыпал: в GitHub → Settings → Secrets and variables → Actions → **Variables**
+   добавить `SITE_URL=https://<сервис>.onrender.com` — workflow `.github/workflows/keepalive.yml` пингует
+   `/api/health` каждые 10 минут (запасной вариант — cron-job.org с тем же URL).
+
+Ограничения free-плана: холодный старт ~1 мин после простоя, временный диск (файлы пересоздаются сидом), база free
+удаляется через 30 дней.
+
 ## Демо-учётки
 
 `make seed` / `python scripts/dev.py seed` создаёт по одной учётке на роль (superadmin, site_admin, editor,
