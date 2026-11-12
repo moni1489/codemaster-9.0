@@ -1,7 +1,5 @@
-"""Генерация демонстрационных изображений-заглушек с водяным знаком «ДЕМО».
-
-Никаких сторонних изображений: всё рисуется Pillow детерминированно по ключу записи
-(лицензионно чисто, см. seed/SOURCES.md).
+"""Демонстрационные изображения: заглушки Pillow с водяным знаком «ДЕМО» и реальные фото
+со свободной лицензией из seed/photos (подпись с авторством, см. seed/SOURCES.md).
 """
 
 from __future__ import annotations
@@ -20,6 +18,7 @@ FONT_CANDIDATES = [
     "C:/Windows/Fonts/georgia.ttf",
     "C:/Windows/Fonts/times.ttf",
     "C:/Windows/Fonts/arial.ttf",
+    "/System/Library/Fonts/Supplemental/Arial.ttf",
 ]
 
 
@@ -31,6 +30,15 @@ def font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
     return ImageFont.load_default()
 
 
+def _band(img: Image.Image, text: str) -> Image.Image:
+    w, h = img.size
+    out = img.convert("RGBA")
+    d = ImageDraw.Draw(out)
+    d.rectangle([0, h - 44, w, h], fill=(20, 20, 20, 200))
+    d.text((16, h - 22), text, font=font(20), fill=(240, 236, 225), anchor="lm")
+    return out.convert("RGB")
+
+
 def _watermark(img: Image.Image, label: str) -> Image.Image:
     w, h = img.size
     layer = Image.new("RGBA", img.size, (0, 0, 0, 0))
@@ -38,11 +46,7 @@ def _watermark(img: Image.Image, label: str) -> Image.Image:
     f = font(max(w, h) // 7)
     d.text((w / 2, h / 2), "ДЕМО", font=f, fill=(150, 30, 30, 70), anchor="mm")
     layer = layer.rotate(28, resample=Image.Resampling.BICUBIC)
-    out = Image.alpha_composite(img.convert("RGBA"), layer)
-    d2 = ImageDraw.Draw(out)
-    d2.rectangle([0, h - 44, w, h], fill=(20, 20, 20, 200))
-    d2.text((16, h - 22), f"Демонстрационная запись · {label}", font=font(20), fill=(240, 236, 225), anchor="lm")
-    return out.convert("RGB")
+    return _band(Image.alpha_composite(img.convert("RGBA"), layer), f"Демонстрационная запись · {label}")
 
 
 def _paper(w: int, h: int, rnd: random.Random) -> Image.Image:
@@ -171,4 +175,14 @@ def render(kind: str, key: str, title: str, page: int = 1) -> bytes:
     img = _watermark(img, title[:80])
     out = io.BytesIO()
     img.save(out, "JPEG", quality=85)
+    return out.getvalue()
+
+
+def render_photo(path: Path, credit: str) -> bytes:
+    """Реальное фото (уменьшено) с подписью-атрибуцией внизу — требование CC BY / CC BY-SA."""
+    with Image.open(path) as src:
+        img = src.convert("RGB")
+    img.thumbnail((1400, 1400))
+    out = io.BytesIO()
+    _band(img, f"Демо · {credit}").save(out, "JPEG", quality=85)
     return out.getvalue()

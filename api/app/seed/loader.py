@@ -62,7 +62,7 @@ from app.models import (
 )
 from app.search.postgres import get_search_backend
 from app.search.synonyms import DEFAULT_SYNONYMS
-from app.seed.images import render
+from app.seed.images import render, render_photo
 
 LANGS = ("ru", "kk", "en")
 
@@ -81,6 +81,27 @@ def seed_dir() -> Path:
 
 def _load(name: str) -> Any:
     return json.loads((seed_dir() / name).read_text(encoding="utf-8"))
+
+
+def _image(kind: str, key: str, title: str, page: int = 1) -> tuple[bytes, str, str]:
+    """(jpeg, provenance, rights): реальное фото из seed/photos/photos.json по ключу, иначе заглушка Pillow."""
+    photos = seed_dir() / "photos"
+    meta = (
+        json.loads((photos / "photos.json").read_text(encoding="utf-8")) if (photos / "photos.json").is_file() else {}
+    )
+    ph = meta.get(key) if page == 1 else None
+    if not ph:
+        return (
+            render(kind, key, title, page),
+            "Сгенерированная демонстрационная заглушка (Pillow), не архивный документ",
+            "CC0 (сгенерировано)",
+        )
+    credit = f"Фото: {ph['author']} · {ph['license']} · Wikimedia Commons"
+    return (
+        render_photo(photos / ph["file"], credit),
+        f"{credit} ({ph['source']}). Современный снимок для демонстрации, не архивный документ",
+        f"{ph['license']} ({ph['license_url']}); изменено: уменьшено, добавлена подпись",
+    )
 
 
 async def reset(session: AsyncSession) -> None:
@@ -223,15 +244,14 @@ def _year(d: str | None) -> int | None:
 
 
 async def _attach_images(
-    session: AsyncSession, doc: Document, kind: str, title: str, pages: int, with_images: bool
+    session: AsyncSession, doc: Document, key: str, kind: str, title: str, pages: int, with_images: bool
 ) -> None:
     if not with_images:
         return
     for page in range(1, pages + 1):
-        data = render(kind, doc.cipher, title, page)
+        data, provenance, rights = _image(kind, key, title, page)
         master = storage.store_master(data)
         view, thumb = storage.store_derivatives(data)
-        provenance = "Сгенерированная демонстрационная заглушка (Pillow), не архивный документ"
         m = DigitalFile(
             document_id=doc.id,
             kind="master",
@@ -244,7 +264,7 @@ async def _attach_images(
             height=master.height,
             original_filename=f"demo-{page}.jpg",
             provenance=provenance,
-            rights_note="CC0 (сгенерировано)",
+            rights_note=rights,
             is_demo=True,
         )
         session.add(m)
@@ -263,7 +283,7 @@ async def _attach_images(
                     width=st.width,
                     height=st.height,
                     provenance=provenance,
-                    rights_note="CC0 (сгенерировано)",
+                    rights_note=rights,
                     is_demo=True,
                 )
             )
@@ -385,6 +405,7 @@ async def seed_catalog(
                     await _attach_images(
                         session,
                         doc,
+                        d["key"],
                         d.get("image", "text"),
                         d["title"].get(original, ""),
                         d.get("pages", 1),
@@ -499,11 +520,9 @@ async def seed_faq_news(session: AsyncSession, with_images: bool = True) -> tupl
 
 async def _site_image(session: AsyncSession, kind: str, key: str, title: str) -> uuid.UUID:
     """Изображение сайта (не документ каталога): мастер + облегчённая копия; возвращает id копии."""
-    data = render(kind, key, title, 1)
+    data, provenance, rights = _image(kind, key, title)
     master = storage.store_master(data)
     view, _thumb = storage.store_derivatives(data)
-    provenance = "Сгенерированная демонстрационная заглушка (Pillow)"
-    rights = "CC0 (сгенерировано)"
     m = DigitalFile(
         kind="master", storage_key=master.storage_key, mime=master.mime, size=master.size, sha256=master.sha256,
         width=master.width, height=master.height, provenance=provenance, rights_note=rights, is_demo=True,
@@ -551,24 +570,21 @@ async def seed_history(session: AsyncSession, keys: dict[str, uuid.UUID], with_i
     await session.flush()
     for i, x in enumerate(ex["exhibits"]):
         doc_id = keys[x["doc"]]
-        view = (
-            (
-                await session.execute(
-                    select(DigitalFile.id)
-                    .where(DigitalFile.document_id == doc_id, DigitalFile.kind == "view")
-                    .order_by(DigitalFile.page_no)
-                )
+        row = (
+            await session.execute(
+                select(DigitalFile.id, DigitalFile.rights_note)
+                .where(DigitalFile.document_id == doc_id, DigitalFile.kind == "view")
+                .order_by(DigitalFile.page_no)
             )
-            .scalars()
-            .first()
-        )
+        ).first()
+        view = row.id if row else None
         exhibit = Exhibit(
             exhibition_id=e.id,
             sort_order=i,
             document_id=doc_id,
             image_file_id=view,
-            source_text="Демонстрационная запись электронного каталога ГА ВКО (изображение — заглушка)",
-            rights_note="CC0 (сгенерированное изображение)",
+            source_text="Демо-запись каталога ГА ВКО; источник изображения — в карточке документа",
+            rights_note=row.rights_note if row else None,
         )
         exhibit.translations = _trs(ExhibitTranslation, {"caption": x["caption"], "description": x.get("desc")})
         session.add(exhibit)
