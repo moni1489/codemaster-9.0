@@ -20,4 +20,8 @@ test("«покажи мне …» распознаётся как команда
   expect(parseShow("Открой третью фотографию.")).toEqual({ show: true, all: false, rest: "", idx: 2 });
   expect(parseShow("екіншісін көрсет").idx).toBe(1);
   expect(parseShow("покажи второй корпус завода").rest).toBe("второй корпус завода");
+  // как распознавание речи слышит «Өскеменнің фотосуреттерін көрсетші»
+  expect(parseShow("өскімін, фото, қор сетті?")).toEqual({ show: true, all: false, rest: "өскімін, фото", idx: 0 });
+  expect(parseShow("Өскеменің фотосуреттерін көрсетші.").rest).toBe("Өскеменің фотосуреттерін");
+  expect(parseShow("архив қоры туралы").show).toBe(false);
 });

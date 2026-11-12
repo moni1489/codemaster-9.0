@@ -76,18 +76,14 @@ async def _search(session: AsyncSession, intent: Intent, lang: str) -> tuple[lis
     """Несколько попыток от точной к широкой; результаты объединяются. Вторым значением — id записей,
     найденных по словам темы (полнотекстовый поиск с морфологией и синонимами), а не только по месту/типу."""
     backend = get_search_backend()
-    kw_q = " ".join(intent.keywords) or None
     base_q = " ".join(filter(None, [intent.place, *intent.keywords])) or None
     cat = (intent.doc_type,) if intent.doc_type else ()
     mk = partial(SearchParams, period_from=intent.period_from, period_to=intent.period_to, page_size=8, lang=lang)
+    # названные место и тип документа не ослабляем: «фото мостов Риддера» — не «решение о мосте через Иртыш»
     attempts = [
         (mk(q=base_q, category=cat), True),  # место + тема + тип
-        (mk(q=kw_q, category=cat), True),  # тема + тип (место могло быть записано иначе)
-        (mk(q=intent.place, category=cat), False),  # всё по месту — только как запасной вариант
-        (mk(q=kw_q), True),  # тема без учёта типа
+        (mk(q=intent.place, category=cat), False),  # то же без темы — только как «ближе всего»
     ]
-    if not kw_q:  # без темы попытки «тема без места/типа» означали бы «всё подряд за период»
-        attempts = [attempts[0], attempts[2]]
     ids: list[Any] = []
     exact: set[Any] = set()
     for p, by_topic in attempts:
@@ -105,6 +101,32 @@ async def _search(session: AsyncSession, intent: Intent, lang: str) -> tuple[lis
         return [], exact
     docs = {d.id: d for d in (await session.execute(select(Document).where(Document.id.in_(ids)))).scalars()}
     return [docs[i] for i in ids[:8] if i in docs], exact
+
+
+async def _llm_intent(provider: LLMProvider, query: str, lang: str, fallback: Intent, notes: list[str]) -> Intent:
+    try:
+        return await provider.extract(query, lang)
+    except Exception as exc:  # недоступен/ошибся LLM → детерминированный разбор
+        log.warning("llm_extract_failed", provider=provider.name, error=type(exc).__name__)
+        notes.append("llm_unavailable")
+        return fallback
+
+
+async def _find(session: AsyncSession, intent: Intent, lang: str) -> tuple[list[Record], bool]:
+    """Записи для ответа и признак «точного нет, только похожее»."""
+    docs, exact = await _search(session, intent, lang)
+    if intent.restricted_topic:
+        # показываем только опубликованные описания с закрытыми копиями — без содержимого
+        docs = [d for d in docs if d.file_access != "open"]
+    records = [_record(d, lang) for d in docs]
+    # тема важнее места: «старые рудничные постройки в Лениногорске» выше «центральной площади Лениногорска»
+    exact_ids = {str(i) for i in exact}
+    scores = {r.id: _overlap(r, intent) + (1 if r.id in exact_ids else 0) for r in records}
+    records.sort(key=lambda r: -scores[r.id])  # sort стабильный — внутри равных сохраняется порядок поиска
+    loose = bool(intent.keywords) and bool(records) and scores[records[0].id] == 0
+    if not loose and intent.keywords:
+        records = [r for r in records if scores[r.id] > 0]  # есть точные — случайные «по месту» не нужны
+    return records[:6], loose  # столько же, сколько карточек под ответом
 
 
 def _overlap(r: Record, intent: Intent) -> int:
@@ -265,31 +287,28 @@ async def ask(
     degraded = False
     notes: list[str] = []
     intent = base
+    asked_llm = False
     # LLM разбирает запрос, только если правила ничего не поняли: так ответ приходит вдвое быстрее
     if provider.is_llm and not _useful(base) and not follow:
-        try:
-            intent = await provider.extract(query, lang)
-        except Exception as exc:  # недоступен/ошибся LLM → детерминированный разбор
-            log.warning("llm_extract_failed", provider=provider.name, error=type(exc).__name__)
-            notes.append("llm_unavailable")
+        intent, asked_llm = await _llm_intent(provider, query, lang, base, notes), True
     if follow and prev:
         intent = _merge(intent, _intent_from_json(prev.intent or {}, prev.q))
+    records, loose = await _find(session, intent, lang)
+    # точного нет — возможно, правила не поняли запрос (ошибки распознавания речи): пусть LLM восстановит смысл
+    if (loose or not records) and provider.is_llm and not asked_llm:
+        retry = await _llm_intent(provider, query, lang, base, notes)
+        if follow and prev:
+            retry = _merge(retry, _intent_from_json(prev.intent or {}, prev.q))
+        if retry.as_dict() != intent.as_dict():
+            r2, l2 = await _find(session, retry, lang)
+            if r2 and (not l2 or not records):
+                intent, records, loose = retry, r2, l2
+    # «ближе всего» имеет смысл, только если совпало место или период — иначе это случайная запись
+    if loose and not (intent.place or intent.period_from):
+        records, loose = [], False
+    restricted = intent.restricted_topic
     query = llm_q
 
-    docs, exact = await _search(session, intent, lang)
-    restricted = intent.restricted_topic
-    if restricted:
-        # показываем только опубликованные описания с закрытыми копиями — без содержимого
-        docs = [d for d in docs if d.file_access != "open"]
-    records = [_record(d, lang) for d in docs]
-    # тема важнее места: «старые рудничные постройки в Лениногорске» выше «центральной площади Лениногорска»
-    exact_ids = {str(i) for i in exact}
-    scores = {r.id: _overlap(r, intent) + (1 if r.id in exact_ids else 0) for r in records}
-    records.sort(key=lambda r: -scores[r.id])  # sort стабильный — внутри равных сохраняется порядок поиска
-    loose = bool(intent.keywords) and bool(records) and scores[records[0].id] == 0
-    if not loose and intent.keywords:
-        records = [r for r in records if scores[r.id] > 0]  # есть точные — случайные «по месту» не нужны
-    records = records[:6]  # столько же, сколько карточек под ответом
     status = "restricted" if restricted else ("found" if records else "not_found")
 
     if status == "not_found":

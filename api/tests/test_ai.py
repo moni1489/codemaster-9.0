@@ -213,3 +213,12 @@ async def test_conversation_context(client: AsyncClient) -> None:
         },
     )
     assert r.status_code == 200 and "Риддер" in r.json()["text"] and "Адрес" in r.json()["text"]
+
+
+def test_misrecognised_kazakh_speech() -> None:
+    # так распознавание речи услышало «Өскеменнің фотосуреттерін көрсетші»
+    it = rule_extract("өскімін, фото, қор сетті?")
+    assert (it.place, it.doc_type, it.keywords) == ("Усть-Каменогорск", "photo", [])
+    # нечёткое сравнение не превращает обычные слова в города
+    for w in ("семена", "семинар", "осенью", "каменный"):
+        assert rule_extract(f"фото {w}").place is None

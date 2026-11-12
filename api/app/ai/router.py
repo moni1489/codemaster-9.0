@@ -32,6 +32,14 @@ SILENCE_PHRASES = (
     "thank you for watching",
     "thanks for watching",
 )
+# Подсказка распознаванию: названия мест и частые слова. Проверено: «Өскіменің» → «Өскеменің».
+STT_PROMPT = {
+    "kk": "Өскемен, Риддер, Семей, Зайсан, Алтай, Шемонаиха. Фотосуреттерді көрсетші. Архив, газеттер, құжаттар, "
+    "анықтама, телефон, оқу залы.",
+    "ru": "Усть-Каменогорск, Риддер, Лениногорск, Семей, Зыряновск, Шемонаиха. Покажи фотографии. Архив, газеты, "
+    "документы, архивная справка, читальный зал.",
+    "en": "Ust-Kamenogorsk, Oskemen, Ridder, Semey, Zyryanovsk. Show me photos. Archive, newspapers, documents.",
+}
 AUDIO_MIMES = ("audio/webm", "audio/ogg", "audio/mp4", "audio/mpeg", "audio/wav", "audio/x-wav", "video/webm")
 
 
@@ -146,7 +154,13 @@ async def transcribe(audio: UploadFile = File(...), lang: str = Form("ru", patte
                 GROQ_STT_URL,
                 headers={"Authorization": f"Bearer {s.groq_api_key.get_secret_value()}"},
                 files={"file": (f"speech.{ext}", data, mime)},
-                data={"model": s.groq_stt_model, "language": lang, "response_format": "json", "temperature": "0"},
+                data={
+                    "model": s.groq_stt_model,
+                    "language": lang,
+                    "prompt": STT_PROMPT[lang],
+                    "response_format": "json",
+                    "temperature": "0",
+                },
             )
             r.raise_for_status()
             text = str(r.json().get("text", "")).strip()

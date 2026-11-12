@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import asdict, dataclass, field
+from difflib import SequenceMatcher
 from typing import Any
 
 from app.search.synonyms import DEFAULT_SYNONYMS, normalize
@@ -40,7 +41,8 @@ STOP = {
     "годы", "год", "года", "лет", "гг", "архив", "архиве", "документы", "документ", "материалы", "какие",
     "мне", "нужны", "нужно", "the", "of", "in", "find", "show", "me", "i", "want", "any", "documents", "about",
     "жылдардағы", "жылдар", "туралы", "құжаттар", "керек", "что", "где", "with", "показать", "открой",
-    "көрсет", "көрсетіңіз", "маған", "времен", "время", "годов", "жылдарының", "жылдары", "жылдардың",
+    "көрсет", "көрсетіңіз", "көрсетші", "көрсетше", "маған", "времен", "время", "годов",
+    "жылдарының", "жылдары", "жылдардың",
     "предыдущие", "вопросы", "текущий", "вопрос", "документах", "документов",
 }  # fmt: skip
 
@@ -72,8 +74,26 @@ def parse_period(q: str) -> tuple[int | None, int | None]:
     return None, None
 
 
+def fuzzy_place(word: str) -> list[str] | None:
+    """Название места с ошибкой распознавания. Только длинные названия и общее начало слова:
+    иначе «семена» становятся Семеем."""
+    for key, terms in DEFAULT_SYNONYMS.items():
+        if key in ("photo", "newspaper", "map", "vov", "vko"):
+            continue
+        for t in (normalize(x) for x in terms):
+            if len(t) >= 6 and word[:2] == t[:2]:
+                r = max(SequenceMatcher(None, word, t).ratio(), SequenceMatcher(None, word[: len(t)], t).ratio())
+                if r >= 0.7:
+                    return terms
+    return None
+
+
+# «көрсетші» и то, во что его превращает распознавание речи («қор сетті») — это команда, а не тема
+SHOW_KK_RE = re.compile(r"(?<!\w)(?:көр|қор)\s?сет\w*")
+
+
 def rule_extract(query: str) -> Intent:
-    q = normalize(query)
+    q = SHOW_KK_RE.sub(" ", normalize(query))
     it = Intent()
     it.period_from, it.period_to = parse_period(q)
     it.restricted_topic = bool(RESTRICTED.search(q))
@@ -89,6 +109,12 @@ def rule_extract(query: str) -> Intent:
             it.place = terms[0]
             place_stems = [normalize(t)[:6] for t in terms]  # «Лениногорске» — это тоже место, не ключевое слово
             break
+    if not it.place:  # распознавание речи коверкает названия: «өскімін» → Өскемен
+        for w in re.findall(r"[\w\-]{5,}", q):
+            hit = fuzzy_place(w)
+            if hit:
+                it.place, place_stems = hit[0], [w[:6]]
+                break
     words = re.findall(r"[\w\-]+", q)
     cat_stems = [w for ws in CATEGORY_WORDS.values() for w in ws]
     kws = []
