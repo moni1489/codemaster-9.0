@@ -36,54 +36,41 @@ class LLMProvider(Protocol):
     async def compose(self, query: str, lang: str, records: list[Record], restricted: bool) -> str: ...
 
 
+# Коротко и по-человечески: полный список с шифрами пользователь видит в карточках под ответом.
 TEMPLATES = {
     "ru": {
-        "found": "По запросу найдено записей в открытой части каталога: {n}. Наиболее подходящие:",
-        "restricted": "Материалы по этой теме существуют или могут существовать, но доступ к ним ограничен "
-        "(персональные данные / сведения ограниченного доступа). Содержимое и цифровые копии на сайте не "
-        "публикуются — обратитесь в читальный зал архива или через официальные каналы госуслуги.",
-        "restricted_found": "Ниже — опубликованные описания, цифровые копии которых закрыты:",
-        "item": "• {title} ({period}) — шифр {cipher}{lock}",
-        "lock": ", копия закрыта",
+        "found": "Нашлось записей: {n}. Лучше всего подходит «{title}»{period}. Остальные — в карточках ниже.",
+        "found_one": "Нашлась одна запись: «{title}»{period}. Откройте карточку ниже.",
+        "restricted": "Доступ к таким документам ограничен: в них личные данные. Посмотреть их можно в читальном "
+        "зале архива.",
+        "restricted_found": "Ниже — только их описания, без копий.",
     },
     "kk": {
-        "found": "Каталогтың ашық бөлігінде табылған жазбалар: {n}. Ең сәйкестері:",
-        "restricted": "Бұл тақырып бойынша материалдар бар немесе болуы мүмкін, бірақ оларға қолжетімділік шектелген. "
-        "Мазмұны мен цифрлық көшірмелері сайтта жарияланбайды — архивтің оқу залына жүгініңіз.",
-        "restricted_found": "Төменде цифрлық көшірмелері жабық жарияланған сипаттамалар:",
-        "item": "• {title} ({period}) — шифр {cipher}{lock}",
-        "lock": ", көшірме жабық",
+        "found": "Табылған жазбалар: {n}. Ең сәйкесі — «{title}»{period}. Қалғандары төмендегі карточкаларда.",
+        "found_one": "Бір жазба табылды: «{title}»{period}. Төмендегі карточканы ашыңыз.",
+        "restricted": "Мұндай құжаттарға қолжетімділік шектелген: оларда жеке деректер бар. Оларды архивтің оқу "
+        "залында көруге болады.",
+        "restricted_found": "Төменде тек сипаттамалары, көшірмесіз.",
     },
     "en": {
-        "found": "Records found in the open part of the catalogue: {n}. Best matches:",
-        "restricted": "Materials on this topic exist or may exist, but access to them is restricted. Their content "
-        "and digital copies are not published on this website — please contact the archive reading room.",
-        "restricted_found": "Below are published descriptions whose digital copies are closed:",
-        "item": "• {title} ({period}) — reference {cipher}{lock}",
-        "lock": ", copy closed",
+        "found": "Found {n} records. The best match is “{title}”{period}. The rest are in the cards below.",
+        "found_one": "Found one record: “{title}”{period}. Open the card below.",
+        "restricted": "Access to such documents is restricted because they contain personal data. You can see them "
+        "in the archive reading room.",
+        "restricted_found": "Below are their descriptions only, without copies.",
     },
 }
 
 
 def template_answer(lang: str, records: list[Record], restricted: bool) -> str:
     t = TEMPLATES.get(lang, TEMPLATES["ru"])
-    lines: list[str] = []
     if restricted:
-        lines.append(t["restricted"])
-        if records:
-            lines.append(t["restricted_found"])
-    elif records:
-        lines.append(t["found"].format(n=len(records)))
-    for r in records[:5]:
-        lines.append(
-            t["item"].format(
-                title=r.title,
-                period=r.period or "—",
-                cipher=r.cipher,
-                lock=t["lock"] if r.file_access != "open" else "",
-            )
-        )
-    return "\n".join(lines)
+        return t["restricted"] + (" " + t["restricted_found"] if records else "")
+    if not records:
+        return ""
+    r = records[0]
+    key = "found_one" if len(records) == 1 else "found"
+    return t[key].format(n=len(records), title=r.title, period=f" ({r.period})" if r.period else "")
 
 
 class RuleBasedProvider:
@@ -110,10 +97,13 @@ EXTRACT_PROMPT = (
 
 def compose_prompt(lang: str, restricted: bool) -> str:
     return (
-        f"Ты — справочный помощник сайта Государственного архива ВКО. Отвечай на {LANG_NAME.get(lang, 'русском')} "
-        "языке, кратко (до 120 слов). Используй ТОЛЬКО записи из блока <records>; не придумывай документы, шифры, "
-        "идентификаторы и ссылки — шифры копируй дословно. Если записей нет, честно скажи, что в открытой части "
-        "каталога ничего не найдено, и посоветуй переформулировать запрос или обратиться в читальный зал. "
+        f"Ты — приветливый сотрудник Государственного архива ВКО и отвечаешь обычному посетителю сайта на "
+        f"{LANG_NAME.get(lang, 'русском')} языке. Ответ будет прочитан вслух, поэтому: 2–3 коротких простых "
+        "предложения, не больше 50 слов, без канцелярита, списков, скобок и Markdown. Сначала прямо ответь на "
+        "вопрос, затем назови по названию один-два самых подходящих документа и почему они подходят. Не перечисляй "
+        "все записи и не пиши шифры, ссылки и идентификаторы — карточки со всеми найденными записями посетитель "
+        "увидит под ответом. Используй ТОЛЬКО записи из блока <records>, ничего не придумывай. Если записи "
+        "подходят к вопросу плохо, честно скажи об этом и подскажи, как уточнить запрос. "
         + (
             "Запрос касается сведений ограниченного доступа: скажи, что материалы могут существовать, но доступ "
             "ограничен, и направь в читальный зал; не пересказывай содержание. "

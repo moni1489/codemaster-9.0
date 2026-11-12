@@ -44,6 +44,8 @@ class Settings(BaseSettings):
     # Распознавание речи (Groq Whisper); без ключа — встроенное распознавание браузера
     groq_api_key: SecretStr = Field(default=SecretStr(""))
     groq_stt_model: str = "whisper-large-v3-turbo"
+    # Озвучка ответов нейроголосами Microsoft Edge (edge-tts, без ключа); off — голос браузера
+    tts_provider: Literal["edge", "off"] = "edge"
     ollama_url: str = "http://localhost:11434"
     ollama_model: str = "qwen2.5:7b"
 

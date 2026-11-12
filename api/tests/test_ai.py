@@ -150,3 +150,31 @@ async def test_transcribe_rejects_non_audio(client: AsyncClient, monkeypatch: py
     monkeypatch.setattr(ai_router, "stt_enabled", lambda: True)
     r = await client.post("/api/assistant/transcribe", files={"audio": ("x.html", b"<script>" * 300, "text/html")})
     assert r.status_code == 415
+
+
+def test_speech_is_short_and_clean() -> None:
+    text = (
+        "Нашлось записей: 6. Лучше всего подходит «Набережная Иртыша» (1965), ГА ВКО Ф. Р-101 Оп. 1 Д. 27 л. 2. "
+        "Остальные — в карточках ниже. Ещё одна фраза.\n• пункт списка /ru/catalog/documents/x"
+    )
+    s = pipeline.to_speech(text)
+    assert s == "Нашлось записей: 6. Лучше всего подходит «Набережная Иртыша» (1965)."
+    assert len(pipeline.to_speech("слово " * 200)) <= 281
+
+
+async def test_answer_has_short_speech(client: AsyncClient) -> None:
+    r = await _ask(client, "Хочу найти фотографии Усть-Каменогорска в 1960-х годах")
+    assert r["speech"] and len(r["speech"]) < len(r["text"]) + 1
+    assert all(s["cipher"] not in r["speech"] for s in r["sources"])
+
+
+async def test_speak_returns_audio(client: AsyncClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    from app.ai import router as ai_router
+
+    async def fake(text: str, lang: str) -> bytes:
+        return b"ID3fake"
+
+    monkeypatch.setattr(ai_router, "synthesize", fake)
+    r = await client.post("/api/assistant/speak", json={"text": "Привет", "lang": "ru"})
+    assert r.status_code == 200 and r.headers["content-type"] == "audio/mpeg" and r.content == b"ID3fake"
+    assert (await client.post("/api/assistant/speak", json={"text": "x" * 401})).status_code == 422

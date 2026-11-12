@@ -3,13 +3,14 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.ai.intent import Intent, rule_extract, validate_answer
+from app.ai.intent import CIPHER_RE, URL_RE, UUID_RE, Intent, rule_extract, validate_answer
 from app.ai.providers import LLMProvider, Record, RuleBasedProvider, template_answer
 from app.core.i18n import pick
 from app.core.logging import log
@@ -23,14 +24,24 @@ DISCLAIMER = {
     "en": "Generated automatically; this is not an archival certificate.",
 }
 NOT_FOUND = {
-    "ru": "В открытой части каталога по этому запросу ничего не найдено. Попробуйте другие слова, другое написание "
-    "названия или более широкий период. Часть фондов ещё не описана в электронном каталоге — уточнить можно в "
-    "читальном зале архива.",
-    "kk": "Каталогтың ашық бөлігінде бұл сұрау бойынша ештеңе табылмады. Басқа сөздерді немесе кеңірек кезеңді "
-    "қолданып көріңіз немесе архивтің оқу залына жүгініңіз.",
-    "en": "Nothing was found in the open part of the catalogue. Try other words, another spelling or a wider period; "
-    "some fonds are not yet described online — the reading room can help.",
+    "ru": "В открытом каталоге ничего не найдено. Попробуйте другие слова или более широкий период. Не всё ещё "
+    "оцифровано — спросите в читальном зале архива.",
+    "kk": "Ашық каталогта ештеңе табылмады. Басқа сөздерді немесе кеңірек кезеңді қолданып көріңіз, не архивтің оқу "
+    "залына жүгініңіз.",
+    "en": "Nothing was found in the open catalogue. Try other words or a wider period — not everything is online "
+    "yet, so the reading room can help.",
 }
+SENTENCE_RE = re.compile(r"(?<=[.!?…])\s+")
+
+
+def to_speech(text: str, max_sentences: int = 2, max_chars: int = 280) -> str:
+    """Что читать вслух: без шифров, ссылок, ID и списков — только первые одна-две фразы."""
+    text = "\n".join(ln for ln in text.splitlines() if not ln.lstrip().startswith(("•", "-", "*")))
+    for rx in (URL_RE, CIPHER_RE, UUID_RE):
+        text = rx.sub("", text)
+    text = re.sub(r"\(\s*\)|\s+([,.;:])", r"\1", re.sub(r"\s+", " ", text)).strip()
+    out = " ".join(SENTENCE_RE.split(text)[:max_sentences])
+    return out if len(out) <= max_chars else out[:max_chars].rsplit(" ", 1)[0] + "…"
 CAT_WORD = {
     "ru": {"photo": "фотографии", "written": "газеты", "map": "карты"},
     "kk": {"photo": "фотосуреттер", "written": "газеттер", "map": "карталар"},
@@ -42,6 +53,7 @@ CAT_WORD = {
 class Answer:
     status: str  # found | not_found | restricted
     text: str
+    speech: str  # короткая версия для озвучки
     sources: list[dict[str, Any]]
     suggestions: list[str]
     intent: dict[str, Any]
@@ -178,6 +190,7 @@ async def ask(session: AsyncSession, query: str, lang: str, provider: LLMProvide
     return Answer(
         status=status,
         text=text.strip(),
+        speech=to_speech(text),
         sources=sources,
         suggestions=_suggestions(intent, lang, status),
         intent=intent.as_dict(),

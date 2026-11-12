@@ -9,7 +9,7 @@ from __future__ import annotations
 from typing import Annotated, Any
 
 import httpx
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Response, UploadFile
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -43,6 +43,7 @@ class AskIn(BaseModel):
 class AskOut(BaseModel):
     status: str
     text: str
+    speech: str
     sources: list[dict[str, Any]]
     suggestions: list[str]
     intent: dict[str, Any]
@@ -70,7 +71,44 @@ def stt_enabled() -> bool:
 @router.get("/mode")
 async def assistant_mode() -> dict[str, Any]:
     p = get_provider()
-    return {"provider": p.name, "is_llm": p.is_llm, "stt": stt_enabled()}
+    return {"provider": p.name, "is_llm": p.is_llm, "stt": stt_enabled(), "tts": tts_enabled()}
+
+
+# ── Озвучка: нейроголоса Microsoft Edge через edge-tts (бесплатно, без ключа). Наружу уходит только текст ответа. ──
+TTS_VOICES = {"ru": "ru-RU-SvetlanaNeural", "kk": "kk-KZ-AigulNeural", "en": "en-US-AvaNeural"}
+
+
+def tts_enabled() -> bool:
+    return get_settings().tts_provider == "edge"
+
+
+class SpeakIn(BaseModel):
+    text: str = Field(min_length=1, max_length=400)
+    lang: str = Field(default="ru", pattern="^(kk|ru|en)$")
+
+
+async def synthesize(text: str, lang: str) -> bytes:
+    import edge_tts
+
+    audio = bytearray()
+    async for chunk in edge_tts.Communicate(text, TTS_VOICES[lang], rate="-5%").stream():
+        if chunk["type"] == "audio":
+            audio += chunk["data"]
+    return bytes(audio)
+
+
+@router.post("/speak", dependencies=[Depends(rate_limit("20/minute", "tts"))])
+async def speak(body: SpeakIn) -> Response:
+    if not tts_enabled():
+        raise HTTPException(503, "Озвучка на сервере выключена")
+    try:
+        audio = await synthesize(body.text, body.lang)
+    except Exception as exc:  # сервис недоступен → фронт переключится на голос браузера
+        log.warning("tts_failed", error=type(exc).__name__)
+        raise HTTPException(502, "Сервис озвучки недоступен") from exc
+    if not audio:
+        raise HTTPException(502, "Пустая озвучка")
+    return Response(audio, media_type="audio/mpeg", headers={"Cache-Control": "no-store"})
 
 
 class TranscriptOut(BaseModel):
