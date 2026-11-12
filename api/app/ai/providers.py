@@ -238,11 +238,54 @@ class OllamaProvider:
         return await self._chat(compose_prompt(lang, restricted), f"{records_block(records)}\n\nВопрос: {query}", False)
 
 
+class OpenRouterProvider:
+    """OpenAI-совместимый API OpenRouter (бесплатные модели). Передаются только запрос и публичные метаданные."""
+
+    name = "openrouter"
+    is_llm = True
+    URL = "https://openrouter.ai/api/v1/chat/completions"
+    # бесплатные модели часто упираются в общий лимит — OpenRouter сам переключится на следующую из списка
+    FALLBACKS = (
+        "nvidia/nemotron-3-ultra-550b-a55b:free",
+        "nvidia/nemotron-3.5-super-vl:free",
+        "google/gemma-4-31b-it:free",
+    )
+
+    def __init__(self) -> None:
+        s = get_settings()
+        self.key = s.openrouter_api_key.get_secret_value()
+        self.model = s.openrouter_model
+        self.timeout = s.llm_timeout_seconds
+
+    async def _chat(self, system: str, user: str) -> str:
+        payload = {
+            "models": [self.model, *(m for m in self.FALLBACKS if m != self.model)][:3],
+            "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}],
+            "temperature": 0.2,
+        }
+        headers = {"Authorization": f"Bearer {self.key}", "X-Title": "VKO Archive prototype"}
+        async with httpx.AsyncClient(timeout=self.timeout) as c:
+            r = await c.post(self.URL, json=payload, headers=headers)
+            r.raise_for_status()
+            content = r.json()["choices"][0]["message"]["content"]
+        if not content:
+            raise RuntimeError("empty completion")
+        return str(content)
+
+    async def extract(self, query: str, lang: str) -> Intent:
+        return _intent_from_json(_json_from_text(await self._chat(EXTRACT_PROMPT, query)), query)
+
+    async def compose(self, query: str, lang: str, records: list[Record], restricted: bool) -> str:
+        return await self._chat(compose_prompt(lang, restricted), records_block(records) + "\n\nВопрос: " + query)
+
+
 def get_provider() -> LLMProvider:
     s = get_settings()
     mode = s.llm_provider
     if mode == "anthropic" or (mode == "auto" and s.anthropic_api_key.get_secret_value()):
         return AnthropicProvider()
+    if mode == "openrouter" or (mode == "auto" and s.openrouter_api_key.get_secret_value()):
+        return OpenRouterProvider()
     if mode == "ollama":
         return OllamaProvider()
     return RuleBasedProvider()
