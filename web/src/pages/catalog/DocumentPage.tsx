@@ -75,7 +75,7 @@ export function DocumentPage() {
       />
 
       <header className="space-y-3">
-        <div className="flex flex-wrap gap-2">
+        <div className="hidden flex-wrap gap-2 sm:flex">
           <AccessBadge access={doc.file_access} />
           {doc.is_demo && <DemoBadge />}
         </div>
