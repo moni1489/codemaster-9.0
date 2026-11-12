@@ -22,11 +22,16 @@ export default {
         warn: v("warn"),
       },
       fontFamily: {
-        sans: ["'Libre Franklin Variable'", "system-ui", "sans-serif"],
-        serif: ["'Source Serif 4 Variable'", "Georgia", "serif"],
+        sans: ["'Golos Text Variable'", "system-ui", "sans-serif"],
+        serif: ["'Golos Text Variable'", "system-ui", "sans-serif"],
         mono: ["'JetBrains Mono'", "Consolas", "monospace"],
       },
-      maxWidth: { content: "80rem" },
+      // пожилые читатели: самый мелкий текст на сайте не меньше 16px (корень 18px)
+      fontSize: {
+        xs: ["0.875rem", { lineHeight: "1.4" }],
+        sm: ["0.9375rem", { lineHeight: "1.5" }],
+      },
+      maxWidth: { content: "76rem" },
       minHeight: { 12: "3rem" },
       minWidth: { 12: "3rem" },
     },

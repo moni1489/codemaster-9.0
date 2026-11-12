@@ -1,0 +1,20 @@
+{
+ "note": "Credits for the photographs in this folder: photos.mjs credits prints the footer block for the ones the pages use.",
+ "photos": [
+  {
+   "file": "photo-f9691888-1280.jpg",
+   "files": [
+    "photo-f9691888-500.jpg",
+    "photo-f9691888-960.jpg",
+    "photo-f9691888-1280.jpg"
+   ],
+   "id": "f9691888",
+   "alt": "Strelka oskemen",
+   "by": "Iskanderov Damir",
+   "licence": "CC BY 3.0",
+   "licenceUrl": "https://creativecommons.org/licenses/by/3.0",
+   "page": "https://commons.wikimedia.org/wiki/File:Strelka_oskemen.jpg",
+   "source": "Wikimedia Commons"
+  }
+ ]
+}

@@ -1,0 +1,136 @@
+{
+ "url": "http://localhost:5173/ru",
+ "views": {
+  "mobile": {
+   "width": 390,
+   "height": 844,
+   "navH": 0,
+   "scrollHeight": 7833,
+   "screens": 9.28,
+   "sections": [
+    {
+     "n": 1,
+     "tag": "section",
+     "id": "",
+     "cls": "hero-bg border-b border-line",
+     "top": 82,
+     "h": 1944,
+     "hScreens": 2.3,
+     "offGrid": 256,
+     "tiles": [
+      {
+       "file": "mobile-sec-01-a.jpg",
+       "scrollY": 82
+      },
+      {
+       "file": "mobile-sec-01-b.jpg",
+       "scrollY": 926
+      },
+      {
+       "file": "mobile-sec-01-c.jpg",
+       "scrollY": 1182
+      }
+     ]
+    },
+    {
+     "n": 2,
+     "tag": "section",
+     "id": "",
+     "cls": "container-page py-12",
+     "top": 2026,
+     "h": 1136,
+     "hScreens": 1.35,
+     "offGrid": 292,
+     "tiles": [
+      {
+       "file": "mobile-sec-02-a.jpg",
+       "scrollY": 2026
+      },
+      {
+       "file": "mobile-sec-02-b.jpg",
+       "scrollY": 2318
+      }
+     ]
+    },
+    {
+     "n": 3,
+     "tag": "section",
+     "id": "",
+     "cls": "container-page grid gap-6 pb-12 lg:grid-cols-3",
+     "top": 3163,
+     "h": 1271,
+     "hScreens": 1.51,
+     "offGrid": 427,
+     "tiles": [
+      {
+       "file": "mobile-sec-03-a.jpg",
+       "scrollY": 3163
+      },
+      {
+       "file": "mobile-sec-03-b.jpg",
+       "scrollY": 3590
+      }
+     ]
+    },
+    {
+     "n": 4,
+     "tag": "section",
+     "id": "",
+     "cls": "container-page pb-12",
+     "top": 4433,
+     "h": 1570,
+     "hScreens": 1.86,
+     "offGrid": 726,
+     "tiles": [
+      {
+       "file": "mobile-sec-04-a.jpg",
+       "scrollY": 4433
+      },
+      {
+       "file": "mobile-sec-04-b.jpg",
+       "scrollY": 5159
+      }
+     ]
+    },
+    {
+     "n": 5,
+     "tag": "section",
+     "id": "",
+     "cls": "border-y border-line bg-surface",
+     "top": 6003,
+     "h": 706,
+     "hScreens": 0.84,
+     "offGrid": 706,
+     "tiles": [
+      {
+       "file": "mobile-sec-05-a.jpg",
+       "scrollY": 6003
+      }
+     ]
+    },
+    {
+     "n": 6,
+     "tag": "footer",
+     "id": "",
+     "cls": "mt-16 border-t border-line bg-surface",
+     "top": 6781,
+     "h": 1052,
+     "hScreens": 1.25,
+     "offGrid": 208,
+     "tiles": [
+      {
+       "file": "mobile-sec-06-a.jpg",
+       "scrollY": 6781
+      },
+      {
+       "file": "mobile-sec-06-b.jpg",
+       "scrollY": 6989
+      }
+     ]
+    }
+   ],
+   "consoleErrors": []
+  }
+ },
+ "at": "2026-11-12T11:11:00.471Z"
+}
