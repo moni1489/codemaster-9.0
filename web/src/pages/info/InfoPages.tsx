@@ -193,9 +193,31 @@ function PriceBlock({ data }: { data: PriceData }) {
 
 function LegalTable({ acts }: { acts: LegalAct[] }) {
   const { t } = useT();
+  const link = (a: LegalAct) => (
+    <>
+      {a.local ? (
+        <a href={a.url} target="_blank" rel="noopener">{t("info.pdf")}</a>
+      ) : (
+        <ExternalLink href={a.url}>{new URL(a.url).hostname}</ExternalLink>
+      )}
+      {!a.verified && <span className="mt-1 block text-xs text-warn">⚠ {t("info.unverifiedLink")}</span>}
+      {a.note && <span className="mt-1 block text-xs text-muted">{a.note}</span>}
+    </>
+  );
   return (
-    <div className="mt-6 overflow-x-auto rounded-xl border border-line">
-      <table className="w-full min-w-[40rem] border-collapse text-sm">
+    <>
+    {/* телефон: карточки вместо широкой таблицы */}
+    <ul className="mt-6 space-y-3 md:hidden">
+      {acts.map((a) => (
+        <li key={a.title} className="card p-3 text-sm">
+          <p className="font-medium">{a.title}</p>
+          <p className="mt-1 text-muted">{a.requisites}</p>
+          <div className="mt-2">{link(a)}</div>
+        </li>
+      ))}
+    </ul>
+    <div className="mt-6 hidden overflow-x-auto rounded-xl border border-line md:block">
+      <table className="w-full border-collapse text-sm">
         <thead className="bg-surface-2">
           <tr>
             <th scope="col" className="px-3 py-2 text-left">{t("info.legalAct")}</th>
@@ -222,6 +244,7 @@ function LegalTable({ acts }: { acts: LegalAct[] }) {
         </tbody>
       </table>
     </div>
+    </>
   );
 }
 
@@ -248,7 +271,7 @@ export function InfoPage({ section }: { section: Section }) {
   return (
     <div className="container-page py-6">
       <Breadcrumbs items={crumbs} />
-      <div className="grid gap-8 lg:grid-cols-[16rem_1fr]">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[16rem_1fr]">
         <aside className="order-2 lg:order-1">
           <SectionNav section={section} current={slug} />
         </aside>

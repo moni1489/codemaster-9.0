@@ -14,7 +14,7 @@
 
 | Набор | Кол-во | Команда |
 |---|---|---|
-| API (pytest, отдельная БД `archive_test`) | 64 | `python scripts/dev.py test` / `make test-api` |
+| API (pytest, отдельная БД `archive_test`) | 67 | `python scripts/dev.py test` / `make test-api` |
 | Фронтенд (vitest + Testing Library) | 11 | `npm run test` в `web/` |
 | Статический анализ | — | ruff, mypy --strict, eslint (jsx-a11y, запрет `dangerouslySetInnerHTML`), tsc --strict |
 
@@ -33,6 +33,10 @@
 | 7 | branch_admin: свой 200, чужой 403 + запись denied | `test_admin.py` | ✔ |
 | 8 | Негатив: неверный пароль ×N → 429; пустая выдача; сбой LLM | `test_admin.py`, `test_catalog_access.py`, `test_ai.py` | — |
 | 9 | Смена языка/темы на каталоге с фильтрами; нет перевода → оригинал + уведомление | `lang.test.tsx`, `theme.test.ts`, `badges.test.tsx`, `test_catalog_access.py` | ✔ |
+
+## Адаптивность и ошибки
+
+Автоматический проход Playwright: 26 публичных страниц на трёх языках, 390×844 (тёмная тема) и 1366×900 (светлая) — проверяются ошибки консоли, отсутствие горизонтальной прокрутки и ровно один `<h1>`. Последний прогон: 0 замечаний.
 
 ## Lighthouse
 

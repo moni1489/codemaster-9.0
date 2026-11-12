@@ -11,6 +11,7 @@ import { useAuth } from "./auth";
 const NAV: { to: string; label: string; perms: string[] }[] = [
   { to: "/admin", label: "Сводка", perms: [] },
   { to: "/admin/catalog", label: "Каталог", perms: ["catalog.read_all", "catalog.edit"] },
+  { to: "/admin/catalog/import", label: "Импорт / экспорт", perms: ["catalog.import", "catalog.export"] },
   { to: "/admin/news", label: "Новости", perms: ["content.edit", "content.review"] },
   { to: "/admin/pages", label: "Страницы", perms: ["content.edit", "content.review"] },
   { to: "/admin/faq", label: "FAQ", perms: ["content.edit", "content.review"] },

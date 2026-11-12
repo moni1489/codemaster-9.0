@@ -106,7 +106,7 @@ export function FaqPage() {
       <Breadcrumbs items={[{ label: t("faqPage.title") }]} />
       <h1 className="text-3xl">{t("faqPage.title")}</h1>
       <p className="mt-2 text-muted">{t("faqPage.lead")}</p>
-      <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_24rem]">
+      <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_24rem]">
         <div className="space-y-8">
           {q.isLoading && <Loading />}
           {q.isError && <ErrorState error={q.error} onRetry={() => void q.refetch()} />}

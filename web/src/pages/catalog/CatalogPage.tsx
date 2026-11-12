@@ -177,7 +177,7 @@ export function CatalogPage() {
           </button>
         </div>
 
-        <div className="mt-4 grid gap-6 lg:grid-cols-[18rem_1fr]">
+        <div className="mt-4 grid grid-cols-1 gap-6 lg:grid-cols-[18rem_1fr]">
           {/* панель фильтров */}
           <aside
             id="catalog-filters"

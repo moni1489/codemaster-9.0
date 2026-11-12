@@ -20,6 +20,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import Settings, get_settings
 
+pytest_plugins = ["tests.staff_fixtures"]
+
 API_DIR = Path(__file__).resolve().parents[1]
 REPO = API_DIR.parent
 
@@ -33,7 +35,7 @@ if _settings.database_url == TEST_DB_URL:
 _storage = Path(os.environ.get("TEST_STORAGE_DIR") or tempfile.mkdtemp(prefix="vko-test-storage-"))
 os.environ["DATABASE_URL"] = TEST_DB_URL
 os.environ["STORAGE_DIR"] = str(_storage)
-os.environ["SEED_DIR"] = str(REPO / "seed")
+os.environ.setdefault("SEED_DIR", str(_settings.seed_dir))  # репозиторий локально, /app/seed в контейнере
 os.environ.setdefault("SECRET_KEY", "test-secret-key-" + "x" * 32)
 os.environ["COOKIE_SECURE"] = "false"
 os.environ["LLM_PROVIDER"] = "rule"

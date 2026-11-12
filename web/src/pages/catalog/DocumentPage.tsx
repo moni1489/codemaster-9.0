@@ -92,7 +92,7 @@ export function DocumentPage() {
         <TranslationNotice info={doc.translation} />
       </header>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <div className="min-w-0 space-y-6">
           {doc.pages.length > 0 ? (
             <Viewer pages={doc.pages} title={doc.title} />

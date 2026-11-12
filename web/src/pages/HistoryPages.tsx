@@ -81,7 +81,7 @@ export function ExhibitionPage() {
       {e.summary && <p className="mt-1 max-w-3xl text-muted">{e.summary}</p>}
       <TranslationNotice info={e.translation} />
       {x && (
-        <section className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]" aria-label={t("exh.item", { n: i + 1, total })}>
+        <section className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]" aria-label={t("exh.item", { n: i + 1, total })}>
           <div className="card overflow-hidden">
             <div className="flex items-center justify-between border-b border-line px-3 py-2">
               <p className="text-sm font-medium" aria-live="polite">{t("exh.item", { n: i + 1, total })}</p>
@@ -162,7 +162,7 @@ export function HistoryPage() {
       <section className="mt-8" aria-labelledby="col-h">
         <h2 id="col-h" className="text-2xl">{t("hist.collections")}</h2>
         {cols.isLoading && <Loading />}
-        <div className="mt-4 grid gap-5 lg:grid-cols-3">
+        <div className="mt-4 grid grid-cols-1 gap-5 lg:grid-cols-3">
           {cols.data?.map((c) => (
             <article key={c.slug} className="card p-5">
               <h3 className="text-xl">{c.title} {c.is_demo && <DemoBadge short />}</h3>

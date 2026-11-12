@@ -43,6 +43,7 @@ const FaqAdminPage = adminLazy(() => import("../admin/pages/ContentPages"), "Faq
 const FeedbackAdmin = adminLazy(() => import("../admin/pages/ContentPages"), "FeedbackAdmin");
 const CatalogList = adminLazy(() => import("../admin/pages/CatalogAdmin"), "CatalogList");
 const DocumentEdit = adminLazy(() => import("../admin/pages/CatalogAdmin"), "DocumentEdit");
+const ImportAdmin = adminLazy(() => import("../admin/pages/ImportAdmin"), "ImportAdmin");
 const BranchesAdmin = adminLazy(() => import("../admin/pages/SystemAdmin"), "BranchesAdmin");
 const BranchEdit = adminLazy(() => import("../admin/pages/SystemAdmin"), "BranchEdit");
 const AuditAdmin = adminLazy(() => import("../admin/pages/SystemAdmin"), "AuditAdmin");
@@ -84,6 +85,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: page(<Dashboard />) },
       { path: "catalog", element: page(<CatalogList />) },
+      { path: "catalog/import", element: page(<ImportAdmin />) },
       { path: "catalog/:id", element: page(<DocumentEdit />) },
       { path: "news", element: page(<NewsList />) },
       { path: "news/:id", element: page(<NewsEdit />) },

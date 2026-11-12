@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { type FormEvent, useState } from "react";
+import { type FormEvent, lazy, Suspense, useState } from "react";
 import { useT } from "../app/useT";
 import { Link, useNavigate } from "react-router-dom";
 import { useLang, useLocalePath } from "../app/lang";
@@ -13,6 +13,8 @@ import { apiGet } from "../lib/api";
 import { SITE } from "../lib/site";
 import type { Branch, NewsList, SearchResponse, TodayResponse } from "../lib/types";
 import { NewsCard } from "./NewsPages";
+
+const MiniMap = lazy(() => import("../components/MiniMap"));
 
 const EXAMPLES = {
   ru: ["фотографии Усть-Каменогорска 1960-х", "Лениногорск", "газета 1945", "личные фонды"],
@@ -204,6 +206,9 @@ function InfoCards() {
       <article className="card flex flex-col p-6">
         <h2 className="text-xl">{t("home.branchesTitle")}</h2>
         <p className="mt-2 text-muted">{t("home.branchesText", { count: filials.length || 13 })}</p>
+        <div className="mt-3" aria-hidden="true">
+          <Suspense fallback={<div className="h-40 rounded-lg bg-surface-2" />}>{filials.length > 0 && <MiniMap branches={branches.data ?? []} />}</Suspense>
+        </div>
         <ul className="mt-3 flex flex-1 flex-wrap gap-1">
           {filials.slice(0, 8).map((b) => (
             <li key={b.id} className="badge border-line">

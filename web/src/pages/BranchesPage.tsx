@@ -135,7 +135,7 @@ export function BranchesPage() {
       {q.isLoading && <Loading />}
       {q.isError && <ErrorState error={q.error} onRetry={() => void q.refetch()} />}
       {q.data && (
-        <div className="mt-4 grid gap-6 lg:grid-cols-[1fr_24rem]">
+        <div className="mt-4 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_24rem]">
           <div className="space-y-3">
             <div className="h-[420px] overflow-hidden rounded-xl border border-line" aria-label={t("map.title")}>
               <MapContainer center={[49.6, 83.2]} zoom={6} scrollWheelZoom={false} className="h-full w-full">

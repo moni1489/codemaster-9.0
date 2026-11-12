@@ -8,6 +8,7 @@ from sqlalchemy import text
 from app.admin.branches import router as admin_branches
 from app.admin.catalog import router as admin_catalog
 from app.admin.content import router as admin_content
+from app.admin.importer import router as admin_import
 from app.admin.system import router as admin_system
 from app.ai.router import router as ai_router
 from app.auth.router import router as auth_router
@@ -50,6 +51,7 @@ def create_app() -> FastAPI:
         seo_router,
         auth_router,
         admin_branches,
+        admin_import,
         admin_catalog,
         admin_content,
         admin_system,
