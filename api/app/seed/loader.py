@@ -25,9 +25,18 @@ from app.models import (
     Branch,
     BranchTranslation,
     CaseTranslation,
+    Collection,
+    CollectionItem,
+    CollectionTranslation,
     DigitalFile,
     Document,
     DocumentTranslation,
+    Event,
+    EventTranslation,
+    Exhibit,
+    Exhibition,
+    ExhibitionTranslation,
+    ExhibitTranslation,
     Faq,
     FaqGroup,
     FaqGroupTranslation,
@@ -43,6 +52,8 @@ from app.models import (
     Page,
     PageTranslation,
     Permission,
+    Person,
+    PersonTranslation,
     Role,
     RolePermission,
     Synonym,
@@ -508,6 +519,120 @@ async def _site_image(session: AsyncSession, kind: str, key: str, title: str) ->
     return v.id
 
 
+def _trs(model: type[Any], values: dict[str, dict[str, Any]]) -> list[Any]:
+    """{field: {lang: text}} -> строки переводов; язык оригинала ru, остальные machine."""
+    first = next(iter(values.values()))
+    langs = [lang for lang in LANGS if first.get(lang)]
+    return [
+        model(
+            lang=lang,
+            translation_status="original" if lang == "ru" else "machine",
+            **{f: (v or {}).get(lang) for f, v in values.items()},
+        )
+        for lang in langs
+    ]
+
+
+async def seed_history(session: AsyncSession, keys: dict[str, uuid.UUID], with_images: bool = True) -> int:
+    data = _content("history.json")
+    ex = data["exhibition"]
+    e = Exhibition(
+        slug=ex["slug"],
+        topic=ex["topic"],
+        period_from=ex["period"][0],
+        period_to=ex["period"][1],
+        workflow_status="published",
+        is_demo=True,
+    )
+    e.translations = _trs(
+        ExhibitionTranslation, {"title": ex["title"], "summary": ex["summary"], "body": ex.get("body")}
+    )
+    session.add(e)
+    await session.flush()
+    for i, x in enumerate(ex["exhibits"]):
+        doc_id = keys[x["doc"]]
+        view = (
+            (
+                await session.execute(
+                    select(DigitalFile.id)
+                    .where(DigitalFile.document_id == doc_id, DigitalFile.kind == "view")
+                    .order_by(DigitalFile.page_no)
+                )
+            )
+            .scalars()
+            .first()
+        )
+        exhibit = Exhibit(
+            exhibition_id=e.id,
+            sort_order=i,
+            document_id=doc_id,
+            image_file_id=view,
+            source_text="Демонстрационная запись электронного каталога ГА ВКО (изображение — заглушка)",
+            rights_note="CC0 (сгенерированное изображение)",
+        )
+        exhibit.translations = _trs(ExhibitTranslation, {"caption": x["caption"], "description": x.get("desc")})
+        session.add(exhibit)
+        if i == 7:
+            e.cover_file_id = view
+    persons: dict[str, Person] = {}
+    for pdata in data["persons"]:
+        person = Person(
+            slug=pdata["slug"],
+            birth_label=pdata["birth"],
+            death_label=pdata["death"],
+            dates_verified=pdata["verified"],
+            is_fictional=True,
+            is_demo=True,
+            workflow_status="published",
+        )
+        person.translations = _trs(
+            PersonTranslation,
+            {
+                "name": pdata["name"],
+                "role_line": pdata.get("role"),
+                "bio": pdata.get("bio"),
+                "source": pdata.get("source"),
+            },
+        )
+        session.add(person)
+        persons[pdata["slug"]] = person
+    await session.flush()
+    for c in data["collections"]:
+        col = Collection(slug=c["slug"], topic=c["topic"], is_demo=True, workflow_status="published")
+        col.translations = _trs(
+            CollectionTranslation, {"title": c["title"], "summary": c.get("summary"), "editorial_note": c.get("note")}
+        )
+        order = 0
+        for k in c["docs"]:
+            col.items.append(CollectionItem(document_id=keys[k], sort_order=order))
+            order += 1
+        for ps in c.get("persons", []):
+            col.items.append(CollectionItem(person_id=persons[ps].id, sort_order=order))
+            order += 1
+        session.add(col)
+    for ev in data["events"]:
+        event = Event(
+            year=ev["year"],
+            year_to=ev.get("year_to"),
+            topic=ev["topic"],
+            date_verified=ev["verified"],
+            is_editorial=ev["editorial"],
+            document_id=keys.get(ev["doc"]) if ev.get("doc") else None,
+            workflow_status="published",
+        )
+        event.translations = _trs(
+            EventTranslation,
+            {
+                "title": ev["title"],
+                "description": ev.get("description"),
+                "place": ev.get("place"),
+                "source": ev.get("source"),
+            },
+        )
+        session.add(event)
+    return len(ex["exhibits"])
+
+
 async def seed_all(session: AsyncSession, *, with_images: bool = True, with_users: bool = True) -> dict[str, Any]:
     await reset(session)
     roles = await seed_roles(session)
@@ -518,6 +643,7 @@ async def seed_all(session: AsyncSession, *, with_images: bool = True, with_user
     keys = await seed_catalog(session, branches, with_images)
     pages = await seed_pages(session)
     n_faq, n_news = await seed_faq_news(session, with_images)
+    await seed_history(session, keys, with_images)
     await session.flush()
     indexed = await get_search_backend().rebuild(session)
     await session.commit()

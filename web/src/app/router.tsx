@@ -2,7 +2,7 @@ import type React from "react";
 import { lazy, Suspense, type ReactNode } from "react";
 import { createBrowserRouter, Navigate, useLocation, useParams } from "react-router-dom";
 import { Layout } from "../components/layout/Layout";
-import { InDevelopment, Loading, NotFound } from "../components/ui/States";
+import { Loading, NotFound } from "../components/ui/States";
 import { isLang } from "./lang";
 
 // Разделение кода по маршрутам (ТЗ §7.2)
@@ -22,6 +22,10 @@ const MemorialDatesPage = lazy(() =>
 const NewsListPage = lazy(() => import("../pages/NewsPages").then((m) => ({ default: m.NewsListPage })));
 const NewsDetailPage = lazy(() => import("../pages/NewsPages").then((m) => ({ default: m.NewsDetailPage })));
 const AssistantPage = lazy(() => import("../features/assistant/Assistant").then((m) => ({ default: m.AssistantPage })));
+const BranchesPage = lazy(() => import("../pages/BranchesPage").then((m) => ({ default: m.BranchesPage })));
+const ExhibitionsPage = lazy(() => import("../pages/HistoryPages").then((m) => ({ default: m.ExhibitionsPage })));
+const ExhibitionPage = lazy(() => import("../pages/HistoryPages").then((m) => ({ default: m.ExhibitionPage })));
+const HistoryPage = lazy(() => import("../pages/HistoryPages").then((m) => ({ default: m.HistoryPage })));
 const FaqPage = lazy(() => import("../pages/FaqPage").then((m) => ({ default: m.FaqPage })));
 
 // Админ-панель — отдельный чанк, на публичных страницах не загружается
@@ -66,7 +70,6 @@ function LangGuard({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
-const dev = (key: string) => page(<InDevelopment titleKey={`nav.${key}`} />);
 
 export const router = createBrowserRouter([
   { path: "/", element: <RootRedirect /> },
@@ -118,11 +121,12 @@ export const router = createBrowserRouter([
       { path: "visitors", element: page(<SectionHub key="visitors" section="visitors" />) },
       { path: "visitors/memorial-dates", element: page(<MemorialDatesPage />) },
       { path: "visitors/:sub", element: page(<InfoPage section="visitors" />) },
-      { path: "history/*", element: dev("history") },
-      { path: "exhibitions/*", element: dev("exhibitions") },
+      { path: "history", element: page(<HistoryPage />) },
+      { path: "exhibitions", element: page(<ExhibitionsPage />) },
+      { path: "exhibitions/:slug", element: page(<ExhibitionPage />) },
       { path: "news", element: page(<NewsListPage />) },
       { path: "news/:slug", element: page(<NewsDetailPage />) },
-      { path: "branches/*", element: dev("branches") },
+      { path: "branches", element: page(<BranchesPage />) },
       { path: "faq", element: page(<FaqPage />) },
       { path: "assistant", element: page(<AssistantPage />) },
       { path: "*", element: <NotFound /> },

@@ -16,8 +16,10 @@ from app.cms.router import router as cms_router
 from app.core.config import get_settings
 from app.core.db import get_engine
 from app.core.logging import configure_logging, log
+from app.history_router import router as history_router
 from app.media.router import router as media_router
 from app.public.router import router as public_router
+from app.seo import router as seo_router
 
 
 def create_app() -> FastAPI:
@@ -42,7 +44,16 @@ def create_app() -> FastAPI:
         return {"status": "ok", "db": db_state, "llm_provider": get_settings().llm_provider}
 
     app.include_router(catalog_router)
-    for r in (ai_router, auth_router, admin_branches, admin_catalog, admin_content, admin_system):
+    for r in (
+        ai_router,
+        history_router,
+        seo_router,
+        auth_router,
+        admin_branches,
+        admin_catalog,
+        admin_content,
+        admin_system,
+    ):
         app.include_router(r)
     app.include_router(cms_router)
     app.include_router(media_router)

@@ -1,0 +1,69 @@
+{
+  "_note": "Демонстрационное наполнение. Экспонаты ссылаются на записи демо-каталога (ключи из catalog.json). Персоналии — вымышленные/обобщённые (is_fictional), реальные ПДн не используются. Неподтверждённые датировки и редакционные пояснения помечены.",
+  "exhibition": {
+    "slug": "ust-kamenogorsk-1960s",
+    "topic": "city", "period": [1941, 1969],
+    "title": {"ru": "Усть-Каменогорск: история города в архивных документах", "kk": "Өскемен: архив құжаттарындағы қала тарихы", "en": "Ust-Kamenogorsk: the city's history in archival documents"},
+    "summary": {"ru": "Как менялся город от военных лет до 1960-х: газеты, решения горисполкома, фотографии новых кварталов.", "kk": "Соғыс жылдарынан 1960 жылдарға дейін қала қалай өзгерді.", "en": "How the city changed from the war years to the 1960s."},
+    "body": {"ru": "Выставка собрана из демонстрационных записей электронного каталога. Каждый экспонат сопровождается подписью, источником и ссылкой на карточку документа."},
+    "exhibits": [
+      {"doc": "news-1941-mobil", "caption": {"ru": "1941: город в первые дни войны", "kk": "1941: соғыстың алғашқы күндеріндегі қала", "en": "1941: the city in the first days of the war"}, "desc": {"ru": "Газета сообщает о митингах на предприятиях и записи добровольцев."}},
+      {"doc": "news-1943-evac", "caption": {"ru": "1943: эвакуированные заводы работают на фронт", "en": "1943: evacuated factories work for the front"}, "desc": {"ru": "Тыл Восточного Казахстана — производство оборонной продукции."}},
+      {"doc": "news-1945-victory", "caption": {"ru": "10 мая 1945: «Победа!»", "kk": "1945 жылғы 10 мамыр: «Жеңіс!»", "en": "10 May 1945: “Victory!”"}, "desc": {"ru": "Праздничный номер газеты «Рудный Алтай»."}},
+      {"doc": "order-zinc-1952", "caption": {"ru": "1952: пуск цинкового завода", "kk": "1952: мырыш зауытын іске қосу", "en": "1952: launch of the zinc plant"}, "desc": {"ru": "Приказ о выпуске первой продукции — начало новой промышленной эпохи."}},
+      {"doc": "bridge-1961", "caption": {"ru": "1961: решение о мосте через Иртыш", "en": "1961: decision on the Irtysh bridge"}, "desc": {"ru": "Мосты связали новые жилые районы с промышленной зоной."}},
+      {"doc": "plan-1963", "caption": {"ru": "1963: план застройки проспекта", "en": "1963: avenue development plan"}, "desc": {"ru": "Датировка плана не подтверждена — указан год по описи."}},
+      {"doc": "photo-prospect-1964", "caption": {"ru": "1964: новый жилой квартал", "kk": "1964: жаңа тұрғын үй кварталы", "en": "1964: a new residential block"}, "desc": {"ru": "Пятиэтажная застройка и благоустройство сквера."}},
+      {"doc": "photo-embankment-1965", "caption": {"ru": "1965: набережная Иртыша", "kk": "1965: Ертіс жағалауы", "en": "1965: the Irtysh embankment"}, "desc": {"ru": "Прогулочная набережная у речного вокзала."}},
+      {"doc": "photo-theatre-1966", "caption": {"ru": "1966: площадь у драмтеатра", "en": "1966: theatre square"}, "desc": {"ru": "Вечерний вид площади."}},
+      {"doc": "photo-microdistrict-1968", "caption": {"ru": "1968: микрорайон на левом берегу Ульбы", "en": "1968: a micro-district on the Ulba"}, "desc": {"ru": "Крупнопанельное строительство."}},
+      {"doc": "photo-tram-1969", "caption": {"ru": "1969: первый трамвай", "kk": "1969: алғашқы трамвай", "en": "1969: the first tram"}, "desc": {"ru": "Датировка снимка не подтверждена."}}
+    ]
+  },
+  "persons": [
+    {"slug": "ozyorny", "birth": "1912", "death": "1988", "verified": false,
+     "name": {"ru": "Сергей Аркадьевич Озёрный (вымышленное лицо)", "kk": "Сергей Аркадьевич Озёрный (ойдан шығарылған тұлға)", "en": "Sergei A. Ozyorny (fictional person)"},
+     "role": {"ru": "Краевед, учитель, фронтовик", "en": "Local historian, teacher, veteran"},
+     "bio": {"ru": "Собирательный образ краеведа Рудного Алтая для демонстрации личного фонда Л-15: фронтовые письма, рукописи очерков, фотографии экспедиций."},
+     "source": {"ru": "Демо-фонд Л-15 (вымышленный)"}},
+    {"slug": "plant-worker", "birth": "1925", "death": null, "verified": false,
+     "name": {"ru": "Металлург свинцово-цинкового комбината (обобщённый образ)", "en": "Lead-zinc plant metallurgist (composite)"},
+     "role": {"ru": "Передовик производства 1950–1960-х", "en": "Leading worker of the 1950s–60s"},
+     "bio": {"ru": "Обобщённый образ работника комбината по фотографиям цехов фонда Р-245. Персональные данные не используются."},
+     "source": {"ru": "Демо-фонд Р-245"}},
+    {"slug": "city-architect", "birth": null, "death": null, "verified": false,
+     "name": {"ru": "Архитектор горисполкома (обобщённый образ)", "en": "City architect (composite)"},
+     "role": {"ru": "Автор планов застройки 1960-х", "en": "Author of 1960s development plans"},
+     "bio": {"ru": "Редакционный образ по документам отдела главного архитектора (фонд Р-101)."},
+     "source": {"ru": "Демо-фонд Р-101"}}
+  ],
+  "collections": [
+    {"slug": "war-home-front", "topic": "war",
+     "title": {"ru": "Восточный Казахстан в годы Великой Отечественной войны", "kk": "Ұлы Отан соғысы жылдарындағы Шығыс Қазақстан", "en": "East Kazakhstan during the Great Patriotic War"},
+     "summary": {"ru": "Газеты, отчёты об эвакуированных детях и фронтовые письма."},
+     "note": {"ru": "Редакционное пояснение: подборка демонстрационная; связи между документами установлены редакцией, а не архивным описанием."},
+     "docs": ["news-1941-mobil", "news-1943-evac", "edu-1942-evac", "ozyorny-letters", "news-1945-victory"], "persons": ["ozyorny"]},
+    {"slug": "industry", "topic": "industry",
+     "title": {"ru": "Промышленное развитие Рудного Алтая", "kk": "Кенді Алтайдың өнеркәсіптік дамуы", "en": "Industrial development of Rudny Altai"},
+     "summary": {"ru": "Свинцово-цинковый комбинат, рудники Лениногорска и Зыряновска."},
+     "note": {"ru": "Редакционное пояснение: хронология предприятий приведена по демонстрационным записям."},
+     "docs": ["order-zinc-1952", "report-1955", "photo-shop-1962", "photo-panorama-1967", "zyr-photo-1960", "ridder-rename-1941"], "persons": ["plant-worker"]},
+    {"slug": "city-1960s", "topic": "city",
+     "title": {"ru": "Город строится: Усть-Каменогорск в 1960-е", "en": "A city under construction: Ust-Kamenogorsk in the 1960s"},
+     "summary": {"ru": "Решения горисполкома, планы и фотографии новых кварталов."},
+     "docs": ["bridge-1961", "plan-1963", "photo-prospect-1964", "school-1965", "photo-microdistrict-1968"], "persons": ["city-architect"]}
+  ],
+  "events": [
+    {"year": 1720, "topic": "city", "verified": true, "editorial": false, "title": {"ru": "Основание Усть-Каменогорской крепости", "kk": "Өскемен бекінісінің негізі қаланды", "en": "Founding of the Ust-Kamenogorsk fortress"}, "place": {"ru": "Усть-Каменогорск"}, "source": {"ru": "Общеизвестный исторический факт"}},
+    {"year": 1786, "topic": "industry", "verified": true, "editorial": false, "title": {"ru": "Основание Риддера (по календарю памятных дат)", "en": "Founding of Ridder"}, "place": {"ru": "Риддер"}, "source": {"ru": "Календарь памятных дат ВКО, 2026"}},
+    {"year": 1940, "topic": "archive", "verified": true, "editorial": false, "title": {"ru": "Образован Государственный архив Восточно-Казахстанской области", "kk": "ШҚО мемлекеттік архиві құрылды", "en": "State Archive of East Kazakhstan founded"}, "source": {"ru": "История архива (материалы заказчика)"}},
+    {"year": 1941, "topic": "war", "verified": true, "editorial": false, "doc": "news-1941-mobil", "title": {"ru": "Начало войны: митинги и запись добровольцев", "en": "War begins: rallies and volunteers"}, "place": {"ru": "Усть-Каменогорск"}, "source": {"ru": "Демо-запись каталога"}},
+    {"year": 1941, "topic": "industry", "verified": true, "editorial": false, "doc": "ridder-rename-1941", "title": {"ru": "Риддер переименован в Лениногорск", "en": "Ridder renamed Leninogorsk"}, "place": {"ru": "Риддер"}, "source": {"ru": "Календарь памятных дат ВКО"}},
+    {"year": 1945, "topic": "war", "verified": true, "editorial": false, "doc": "news-1945-victory", "title": {"ru": "Победа: праздничный номер «Рудного Алтая»", "en": "Victory issue of “Rudny Altai”"}, "source": {"ru": "Демо-запись каталога"}},
+    {"year": 1952, "topic": "industry", "verified": true, "editorial": false, "doc": "order-zinc-1952", "title": {"ru": "Пуск цинкового завода", "en": "Zinc plant launched"}, "source": {"ru": "Демо-запись каталога"}},
+    {"year": 1963, "topic": "archive", "verified": true, "editorial": false, "title": {"ru": "Созданы Зайсанский и Зыряновский филиалы архива", "en": "Zaisan and Zyryanovsk branches created"}, "source": {"ru": "История архива"}},
+    {"year": 1965, "year_to": 1969, "topic": "city", "verified": false, "editorial": true, "doc": "photo-microdistrict-1968", "title": {"ru": "Массовое жилищное строительство на левом берегу", "en": "Mass housing construction on the left bank"}, "description": {"ru": "Редакционная интерпретация по фотографиям; точные даты не установлены."}, "place": {"ru": "Усть-Каменогорск"}, "source": {"ru": "Редакция, по демо-фотографиям"}},
+    {"year": 1991, "topic": "city", "verified": true, "editorial": false, "doc": "news-1991-indep", "title": {"ru": "Независимость Республики Казахстан", "kk": "Қазақстан Республикасының тәуелсіздігі", "en": "Independence of the Republic of Kazakhstan"}, "source": {"ru": "Демо-запись каталога"}},
+    {"year": 2019, "topic": "archive", "verified": true, "editorial": false, "title": {"ru": "Зыряновский филиал переименован в филиал района Алтай", "en": "Zyryanovsk branch renamed Altai branch"}, "source": {"ru": "История архива"}}
+  ]
+}
