@@ -18,6 +18,7 @@ interface Source {
 interface AskResponse {
   status: "found" | "not_found" | "restricted";
   text: string;
+  speech: string;
   sources: Source[];
   suggestions: string[];
   provider: string;
@@ -71,19 +72,62 @@ function pickMime(): string {
 
 const canSpeak = () => typeof window !== "undefined" && "speechSynthesis" in window;
 
-function speak(text: string, lang: Lang, onEnd: () => void): void {
+// нейросетевые голоса браузера (Edge «Natural/Online», Chrome «Google») звучат заметно живее системных
+const NICE_VOICE = /natural|online|neural|google|premium|enhanced/i;
+
+function speakBrowser(text: string, lang: Lang, onEnd: () => void): void {
   if (!canSpeak()) return onEnd();
   const synth = window.speechSynthesis;
   synth.cancel();
   const u = new SpeechSynthesisUtterance(text);
   u.lang = VOICE_LANG[lang];
-  // голос нужного языка, если он установлен; иначе браузер выберет сам
-  const voice = synth.getVoices().find((v) => v.lang.toLowerCase().startsWith(lang));
+  const voices = synth.getVoices().filter((v) => v.lang.toLowerCase().startsWith(lang));
+  const voice = voices.find((v) => NICE_VOICE.test(v.name)) ?? voices[0];
   if (voice) u.voice = voice;
   u.rate = 0.95;
   u.onend = onEnd;
   u.onerror = onEnd;
   synth.speak(u);
+}
+
+let player: HTMLAudioElement | null = null;
+
+/** Сначала нейроголос с сервера (edge-tts), при любой ошибке — голос браузера. */
+async function speak(text: string, lang: Lang, server: boolean, onEnd: () => void): Promise<void> {
+  stopSpeaking();
+  if (server) {
+    try {
+      const res = await fetch("/api/assistant/speak", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: text.slice(0, 400), lang }),
+      });
+      if (!res.ok) throw new Error(String(res.status));
+      const url = URL.createObjectURL(await res.blob());
+      const a = new Audio(url);
+      const done = () => {
+        URL.revokeObjectURL(url);
+        if (player === a) player = null;
+        onEnd();
+      };
+      a.onended = done;
+      a.onerror = done;
+      player = a;
+      await a.play();
+      return;
+    } catch {
+      player = null; // падаем на голос браузера
+    }
+  }
+  speakBrowser(text, lang, onEnd);
+}
+
+function stopSpeaking(): void {
+  if (player) {
+    player.pause();
+    player = null;
+  }
+  if (canSpeak()) window.speechSynthesis.cancel();
 }
 
 /** Чат помощника: ответ всегда с источниками-ссылками и пометкой «сформировано автоматически». */
@@ -102,7 +146,7 @@ export function AssistantChat({ compact = false }: { compact?: boolean }) {
   const [transcribing, setTranscribing] = useState(false);
   const mode = useQuery({
     queryKey: ["assistant-mode"],
-    queryFn: async () => (await (await fetch("/api/assistant/mode")).json()) as { is_llm: boolean; stt?: boolean },
+    queryFn: async () => (await (await fetch("/api/assistant/mode")).json()) as { is_llm: boolean; stt?: boolean; tts?: boolean },
     staleTime: 10 * 60_000,
   });
   const serverStt = !!mode.data?.stt && canRecord();
@@ -111,10 +155,10 @@ export function AssistantChat({ compact = false }: { compact?: boolean }) {
 
   const say = (text: string) => {
     setSpeaking(true);
-    speak(text, lang, () => setSpeaking(false));
+    void speak(text, lang, !!mode.data?.tts, () => setSpeaking(false));
   };
   const hush = () => {
-    if (canSpeak()) window.speechSynthesis.cancel();
+    stopSpeaking();
     setSpeaking(false);
   };
 
@@ -131,7 +175,7 @@ export function AssistantChat({ compact = false }: { compact?: boolean }) {
     },
     onSuccess: (a, query) => {
       setTurns((ts) => ts.map((x) => (x.q === query && !x.a ? { ...x, a } : x)));
-      if (readAloud.current) say(a.text);
+      if (readAloud.current) say(a.speech || a.text);
     },
     onError: (e, query) => {
       setTurns((ts) => ts.map((x) => (x.q === query && !x.a ? { ...x, error: (e as Error).message } : x)));
@@ -146,7 +190,7 @@ export function AssistantChat({ compact = false }: { compact?: boolean }) {
     () => () => {
       recRef.current?.stop();
       if (mediaRef.current?.state === "recording") mediaRef.current.stop();
-      if (canSpeak()) window.speechSynthesis.cancel();
+      stopSpeaking();
     },
     [],
   );
@@ -302,8 +346,8 @@ export function AssistantChat({ compact = false }: { compact?: boolean }) {
             {turn.a && (
               <div className="max-w-[95%] rounded-lg border border-line bg-surface p-3">
                 <p className="whitespace-pre-line">{turn.a.text}</p>
-                {canSpeak() && (
-                  <button type="button" className="btn-ghost mt-2 px-3" onClick={() => (speaking ? hush() : say(turn.a!.text))}>
+                {(canSpeak() || mode.data?.tts) && (
+                  <button type="button" className="btn-ghost mt-2 px-3" onClick={() => (speaking ? hush() : say(turn.a!.speech || turn.a!.text))}>
                     <Icon name={speaking ? "stop" : "volume"} size={20} />
                     {speaking ? t("voice.stopReading") : t("voice.replay")}
                   </button>

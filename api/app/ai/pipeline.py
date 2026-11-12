@@ -39,9 +39,12 @@ def to_speech(text: str, max_sentences: int = 2, max_chars: int = 280) -> str:
     text = "\n".join(ln for ln in text.splitlines() if not ln.lstrip().startswith(("•", "-", "*")))
     for rx in (URL_RE, CIPHER_RE, UUID_RE):
         text = rx.sub("", text)
-    text = re.sub(r"\(\s*\)|\s+([,.;:])", r"\1", re.sub(r"\s+", " ", text)).strip()
+    text = re.sub(r"\(\s*\)|\s+([,.;:])", r"\1", re.sub(r"\s+", " ", text))
+    text = re.sub(r"[,;:—–-]+\s*(?=[.!?…])", "", text).strip()  # «(1965), .» после вырезанного шифра
     out = " ".join(SENTENCE_RE.split(text)[:max_sentences])
     return out if len(out) <= max_chars else out[:max_chars].rsplit(" ", 1)[0] + "…"
+
+
 CAT_WORD = {
     "ru": {"photo": "фотографии", "written": "газеты", "map": "карты"},
     "kk": {"photo": "фотосуреттер", "written": "газеттер", "map": "карталар"},
