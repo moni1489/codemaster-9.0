@@ -326,6 +326,28 @@ const en: Dict = {
     tooMany: "Too many submissions. Please try again in a minute.",
     error: "Could not send feedback. Please check the text and try again.",
   },
+  assistant: {
+    title: "AI assistant",
+    open: "Open AI assistant",
+    close: "Minimise assistant",
+    lead: "Helps you find open materials in the catalogue and navigate the website. Works only with published descriptions.",
+    placeholder: "e.g. photos of Ust-Kamenogorsk in the 1960s",
+    send: "Ask",
+    thinking: "Searching the catalogue…",
+    sources: "Sources",
+    suggestions: "Refine your query",
+    demoMode: "Demo mode without an LLM: the answer is templated from search results",
+    degraded: "Language model unavailable — answer built from search results",
+    closed: "copy closed",
+    error: "Could not get an answer. Try later or use the catalogue search.",
+    tooMany: "Too many questions. Please wait a minute.",
+    examples: "Example questions",
+    ex1: "Photos of Oskemen in the 1960s",
+    ex2: "Wartime newspapers 1945",
+    ex3: "Personnel files of plant employees",
+    privacy: "Do not enter personal data. This is not an appeal to the archive.",
+    fullPage: "Open as a page",
+  },
 };
 
 export default en;

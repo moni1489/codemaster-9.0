@@ -37,7 +37,7 @@ class Settings(BaseSettings):
 
     llm_provider: Literal["auto", "anthropic", "ollama", "rule"] = "auto"
     anthropic_api_key: SecretStr = Field(default=SecretStr(""))
-    anthropic_model: str = "claude-sonnet-5-5"
+    anthropic_model: str = "claude-opus-5-5"
     llm_timeout_seconds: float = 20.0
     ollama_url: str = "http://localhost:11434"
     ollama_model: str = "qwen2.5:7b"

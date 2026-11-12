@@ -2,7 +2,10 @@ import { useEffect } from "react";
 import { useT } from "../../app/useT";
 import { Outlet, useLocation } from "react-router-dom";
 import { useSyncLang } from "../../app/lang";
+import { lazy, Suspense } from "react";
 import { Footer } from "./Footer";
+
+const AssistantWidget = lazy(() => import("../../features/assistant/Assistant").then((m) => ({ default: m.AssistantWidget })));
 import { Header } from "./Header";
 
 export function Layout() {
@@ -23,6 +26,9 @@ export function Layout() {
         <Outlet />
       </main>
       <Footer />
+      <Suspense fallback={null}>
+        <AssistantWidget />
+      </Suspense>
     </div>
   );
 }

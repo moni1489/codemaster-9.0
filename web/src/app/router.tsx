@@ -21,6 +21,7 @@ const MemorialDatesPage = lazy(() =>
 );
 const NewsListPage = lazy(() => import("../pages/NewsPages").then((m) => ({ default: m.NewsListPage })));
 const NewsDetailPage = lazy(() => import("../pages/NewsPages").then((m) => ({ default: m.NewsDetailPage })));
+const AssistantPage = lazy(() => import("../features/assistant/Assistant").then((m) => ({ default: m.AssistantPage })));
 const FaqPage = lazy(() => import("../pages/FaqPage").then((m) => ({ default: m.FaqPage })));
 
 // Админ-панель — отдельный чанк, на публичных страницах не загружается
@@ -123,7 +124,7 @@ export const router = createBrowserRouter([
       { path: "news/:slug", element: page(<NewsDetailPage />) },
       { path: "branches/*", element: dev("branches") },
       { path: "faq", element: page(<FaqPage />) },
-      { path: "assistant", element: dev("assistant") },
+      { path: "assistant", element: page(<AssistantPage />) },
       { path: "*", element: <NotFound /> },
     ],
   },
