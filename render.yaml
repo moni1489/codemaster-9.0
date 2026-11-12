@@ -24,6 +24,8 @@ services:
         value: auto
       - key: OPENROUTER_API_KEY
         sync: false        # необязательно: ключ OpenRouter
+      - key: GROQ_API_KEY
+        sync: false        # необязательно: распознавание голоса (Groq Whisper)
       - key: OPENROUTER_MODEL
         value: nvidia/nemotron-3-ultra-550b-a55b:free
       - key: LLM_TIMEOUT_SECONDS

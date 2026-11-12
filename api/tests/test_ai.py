@@ -133,5 +133,20 @@ async def test_llm_failure_falls_back(session: AsyncSession) -> None:
 
 
 async def test_rule_provider_is_labeled(client: AsyncClient) -> None:
-    assert (await client.get("/api/assistant/mode")).json() == {"provider": "rule", "is_llm": False}
+    mode = (await client.get("/api/assistant/mode")).json()
+    assert mode["provider"] == "rule" and mode["is_llm"] is False
     assert RuleBasedProvider.is_llm is False
+
+
+async def test_transcribe_disabled_without_key(client: AsyncClient) -> None:
+    assert (await client.get("/api/assistant/mode")).json()["stt"] is False
+    r = await client.post("/api/assistant/transcribe", files={"audio": ("a.webm", b"x" * 2000, "audio/webm")})
+    assert r.status_code == 503
+
+
+async def test_transcribe_rejects_non_audio(client: AsyncClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    from app.ai import router as ai_router
+
+    monkeypatch.setattr(ai_router, "stt_enabled", lambda: True)
+    r = await client.post("/api/assistant/transcribe", files={"audio": ("x.html", b"<script>" * 300, "text/html")})
+    assert r.status_code == 415

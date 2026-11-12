@@ -27,6 +27,8 @@ const en: Dict = {
     wide: "Wide"
   },
   voice: {
+    transcribing: "Recognising speech…",
+    notHeard: "Could not make out the speech. Try again or type your question.",
     replay: "Read the answer aloud",
     speak: "Ask by voice",
     listening: "Listening… Please speak",

@@ -6,6 +6,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
+    host: true, // слушать все интерфейсы: и 127.0.0.1, и ::1, и локальную сеть (показ с другого ноутбука)
     proxy: {
       "/api": "http://localhost:8000",
       "/sitemap.xml": "http://localhost:8000",

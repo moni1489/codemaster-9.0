@@ -41,6 +41,9 @@ class Settings(BaseSettings):
     llm_timeout_seconds: float = 20.0
     openrouter_api_key: SecretStr = Field(default=SecretStr(""))
     openrouter_model: str = "nvidia/nemotron-3-ultra-550b-a55b:free"
+    # Распознавание речи (Groq Whisper); без ключа — встроенное распознавание браузера
+    groq_api_key: SecretStr = Field(default=SecretStr(""))
+    groq_stt_model: str = "whisper-large-v3-turbo"
     ollama_url: str = "http://localhost:11434"
     ollama_model: str = "qwen2.5:7b"
 

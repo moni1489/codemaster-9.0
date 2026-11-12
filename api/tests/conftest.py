@@ -39,6 +39,7 @@ os.environ.setdefault("SEED_DIR", str(_settings.seed_dir))  # репозитор
 os.environ.setdefault("SECRET_KEY", "test-secret-key-" + "x" * 32)
 os.environ["COOKIE_SECURE"] = "false"
 os.environ["LLM_PROVIDER"] = "rule"
+os.environ["GROQ_API_KEY"] = ""  # тесты не обращаются к внешнему распознаванию речи
 get_settings.cache_clear()
 
 from app.core import db as core_db  # noqa: E402

@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useLang, useLocalePath } from "../../app/lang";
@@ -57,6 +57,18 @@ function recognitionCtor(): RecognitionCtor | undefined {
   return w.SpeechRecognition ?? w.webkitSpeechRecognition;
 }
 
+// Серверное распознавание (Groq Whisper): запись в браузере через MediaRecorder — работает и в Firefox
+const canRecord = () =>
+  typeof window !== "undefined" && typeof MediaRecorder !== "undefined" && !!navigator.mediaDevices?.getUserMedia;
+const MAX_RECORD_MS = 30_000;
+
+function pickMime(): string {
+  for (const m of ["audio/webm;codecs=opus", "audio/webm", "audio/ogg;codecs=opus", "audio/mp4"]) {
+    if (MediaRecorder.isTypeSupported(m)) return m;
+  }
+  return "";
+}
+
 const canSpeak = () => typeof window !== "undefined" && "speechSynthesis" in window;
 
 function speak(text: string, lang: Lang, onEnd: () => void): void {
@@ -85,8 +97,17 @@ export function AssistantChat({ compact = false }: { compact?: boolean }) {
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const readAloud = useRef(false);
   const recRef = useRef<Recognition | null>(null);
+  const mediaRef = useRef<MediaRecorder | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
-  const Rec = recognitionCtor();
+  const [transcribing, setTranscribing] = useState(false);
+  const mode = useQuery({
+    queryKey: ["assistant-mode"],
+    queryFn: async () => (await (await fetch("/api/assistant/mode")).json()) as { is_llm: boolean; stt?: boolean },
+    staleTime: 10 * 60_000,
+  });
+  const serverStt = !!mode.data?.stt && canRecord();
+  const Rec = serverStt ? undefined : recognitionCtor();
+  const voiceAvailable = serverStt || !!Rec;
 
   const say = (text: string) => {
     setSpeaking(true);
@@ -124,6 +145,7 @@ export function AssistantChat({ compact = false }: { compact?: boolean }) {
   useEffect(
     () => () => {
       recRef.current?.stop();
+      if (mediaRef.current?.state === "recording") mediaRef.current.stop();
       if (canSpeak()) window.speechSynthesis.cancel();
     },
     [],
@@ -142,7 +164,60 @@ export function AssistantChat({ compact = false }: { compact?: boolean }) {
     send(q);
   };
 
+  const recordServer = async () => {
+    if (mediaRef.current) {
+      mediaRef.current.stop();
+      return;
+    }
+    hush();
+    setVoiceError(null);
+    let stream: MediaStream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch {
+      setVoiceError(t("voice.denied"));
+      return;
+    }
+    const mime = pickMime();
+    const rec = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+    const chunks: Blob[] = [];
+    rec.ondataavailable = (e) => e.data.size && chunks.push(e.data);
+    const timer = window.setTimeout(() => rec.state === "recording" && rec.stop(), MAX_RECORD_MS);
+    rec.onstop = async () => {
+      window.clearTimeout(timer);
+      stream.getTracks().forEach((tr) => tr.stop());
+      mediaRef.current = null;
+      setListening(false);
+      const blob = new Blob(chunks, { type: (rec.mimeType || "audio/webm").split(";")[0] });
+      if (blob.size < 1000) return;
+      setTranscribing(true);
+      try {
+        const fd = new FormData();
+        fd.append("audio", blob, "speech");
+        fd.append("lang", lang);
+        const res = await fetch("/api/assistant/transcribe", { method: "POST", body: fd });
+        if (!res.ok) throw new Error(res.status === 429 ? t("assistant.tooMany") : t("assistant.error"));
+        const text = ((await res.json()) as { text: string }).text.trim();
+        if (text) {
+          setQ(text);
+          send(text, true);
+        } else setVoiceError(t("voice.notHeard"));
+      } catch (e) {
+        setVoiceError((e as Error).message);
+      } finally {
+        setTranscribing(false);
+      }
+    };
+    mediaRef.current = rec;
+    rec.start();
+    setListening(true);
+  };
+
   const listen = () => {
+    if (serverStt) {
+      void recordServer();
+      return;
+    }
     if (!Rec) return;
     if (recRef.current) {
       recRef.current.stop();
@@ -208,7 +283,7 @@ export function AssistantChat({ compact = false }: { compact?: boolean }) {
             {Rec ? (
               <div className="py-2 text-center">
                 {mic(true)}
-                <p className="mx-auto mt-4 max-w-sm text-lg font-medium">{listening ? t("voice.listening") : t("voice.hint")}</p>
+                <p className="mx-auto mt-4 max-w-sm text-lg font-medium">{transcribing ? t("voice.transcribing") : listening ? t("voice.listening") : t("voice.hint")}</p>
               </div>
             ) : (
               <p className="text-muted">{t("assistant.lead")}</p>
@@ -312,12 +387,12 @@ export function AssistantChat({ compact = false }: { compact?: boolean }) {
           onChange={(e) => setQ(e.target.value)}
           enterKeyHint="send"
         />
-        {Rec && mic(false)}
+        {voiceAvailable && mic(false)}
         <button type="submit" className="btn-primary btn-icon shrink-0" disabled={ask.isPending} aria-label={t("assistant.send")} title={t("assistant.send")}>
           <Icon name="arrow" size={22} />
         </button>
       </form>
-      {!Rec && <p className="mt-2 text-sm text-muted">{t("voice.unsupported")}</p>}
+      {!voiceAvailable && <p className="mt-2 text-sm text-muted">{t("voice.unsupported")}</p>}
       <p className="mt-2 text-sm text-muted">{t("assistant.privacy")}</p>
     </div>
   );
