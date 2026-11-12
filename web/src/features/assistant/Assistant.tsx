@@ -25,11 +25,13 @@ interface AskResponse {
   is_llm: boolean;
   degraded: boolean;
   disclaimer: string;
+  intent: Record<string, unknown>;
   lang: Lang; // язык ответа: на казахский вопрос — казахский, даже на русской версии сайта
 }
 
 interface Turn {
   q: string;
+  sent?: string; // что ушло на сервер («покажи мне X» → «X»)
   show?: boolean;
   a?: AskResponse;
   error?: string;
@@ -93,24 +95,35 @@ function speakBrowser(text: string, lang: Lang, onEnd: () => void): void {
 }
 
 let player: HTMLAudioElement | null = null;
+let pending: AbortController | null = null;
+// Номер текущей реплики. Каждая новая (и «стоп») его увеличивает, и всё, что относится к старой —
+// скачивание озвучки, воспроизведение, её onend, — молча отбрасывается. Иначе играли два голоса сразу.
+let speechSeq = 0;
 
 /** Сначала нейроголос с сервера (edge-tts), при любой ошибке — голос браузера. */
 async function speak(text: string, lang: Lang, server: boolean, onEnd: () => void): Promise<void> {
   stopSpeaking();
+  const my = speechSeq;
+  const end = () => my === speechSeq && onEnd();
   if (server) {
+    const ctl = new AbortController();
+    pending = ctl;
     try {
       const res = await fetch("/api/assistant/speak", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: text.slice(0, 400), lang }),
+        signal: ctl.signal,
       });
       if (!res.ok) throw new Error(String(res.status));
-      const url = URL.createObjectURL(await res.blob());
+      const blob = await res.blob();
+      if (my !== speechSeq) return; // пока скачивали, началась другая реплика
+      const url = URL.createObjectURL(blob);
       const a = new Audio(url);
       const done = () => {
         URL.revokeObjectURL(url);
         if (player === a) player = null;
-        onEnd();
+        end();
       };
       a.onended = done;
       a.onerror = done;
@@ -118,13 +131,19 @@ async function speak(text: string, lang: Lang, server: boolean, onEnd: () => voi
       await a.play();
       return;
     } catch {
-      player = null; // падаем на голос браузера
+      if (my !== speechSeq) return; // отменили — голос браузера не нужен
+      player = null; // сервер не ответил — голос браузера
+    } finally {
+      if (pending === ctl) pending = null;
     }
   }
-  speakBrowser(text, lang, onEnd);
+  speakBrowser(text, lang, end);
 }
 
 function stopSpeaking(): void {
+  speechSeq++;
+  pending?.abort();
+  pending = null;
   if (player) {
     player.pause();
     player = null;
@@ -141,14 +160,43 @@ const THAT_RE = /^(?:его|её|это|этот|эту|первый|перву�
 // в казахском глагол обычно в конце: «Өскемен фотосуреттерін көрсет»
 const SHOW_END_RE = /(?:^|[\s,]+)(?:маған\s+)?(?:көрсет(?:іңіз)?|ашыңыз)[\s.!?]*$/i;
 
-export function parseShow(text: string): { show: boolean; all: boolean; rest: string } {
+// «покажи второй / третью» — номер карточки из прошлого ответа
+const ORDINALS: [RegExp, number][] = [
+  [/^(?:втор\S*|екінші\S*|second|2)$/i, 1],
+  [/^(?:трет\S*|үшінші\S*|third|3)$/i, 2],
+  [/^(?:четв[её]рт\S*|төртінші\S*|fourth|4)$/i, 3],
+  [/^(?:пят\S*|бесінші\S*|fifth|5)$/i, 4],
+];
+
+export function parseShow(text: string): { show: boolean; all: boolean; rest: string; idx: number } {
   const m = SHOW_RE.exec(text);
   const end = m ? null : SHOW_END_RE.exec(text);
-  if (!m && !end) return { show: false, all: false, rest: text };
+  if (!m && !end) return { show: false, all: false, rest: text, idx: 0 };
   let rest = m ? text.slice(m[0].length) : text.slice(0, end!.index);
   const all = ALL_RE.exec(rest);
   if (all) rest = rest.slice(all[0].length);
-  return { show: true, all: !!all, rest: THAT_RE.test(rest) ? "" : rest.trim() };
+  const words = rest.trim().replace(/[.!?]+$/, "").split(/\s+/);
+  const ord = ORDINALS.find(([rx]) => rx.test(words[0] ?? ""));
+  if (ord && words.length <= 2) return { show: true, all: false, rest: "", idx: ord[1] };
+  return { show: true, all: !!all, rest: THAT_RE.test(rest) ? "" : rest.trim(), idx: 0 };
+}
+
+// история разговора живёт до закрытия вкладки и переживает переходы по сайту («покажи» уводит со страницы)
+const TURNS_KEY = "assistant.turns";
+function loadTurns(): Turn[] {
+  try {
+    const v: unknown = JSON.parse(sessionStorage.getItem(TURNS_KEY) ?? "[]");
+    return Array.isArray(v) ? (v as Turn[]).filter((x) => x.a || x.error) : [];
+  } catch {
+    return [];
+  }
+}
+function saveTurns(ts: Turn[]): void {
+  try {
+    sessionStorage.setItem(TURNS_KEY, JSON.stringify(ts.filter((x) => x.a || x.error).slice(-20)));
+  } catch {
+    /* без хранилища история живёт до перезагрузки */
+  }
 }
 
 const VOICE_KEY = "assistant.voice";
@@ -167,7 +215,19 @@ export function AssistantChat({ compact = false, onNavigate }: { compact?: boole
   const { t } = useT();
   const lang = useLang();
   const [q, setQ] = useState("");
-  const [turns, setTurns] = useState<Turn[]>([]);
+  const [turns, setTurnsState] = useState<Turn[]>(loadTurns);
+  const turnsRef = useRef(turns);
+  // сохраняем сразу, а не в эффекте: после «покажи» чат размонтируется раньше, чем эффект бы сработал
+  const setTurns = (fn: (ts: Turn[]) => Turn[]) => {
+    const next = fn(turnsRef.current);
+    turnsRef.current = next;
+    saveTurns(next);
+    setTurnsState(next);
+  };
+  const newChat = () => {
+    hush();
+    setTurns(() => []);
+  };
   const [listening, setListening] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [voiceError, setVoiceError] = useState<string | null>(null);
@@ -209,10 +269,15 @@ export function AssistantChat({ compact = false, onNavigate }: { compact?: boole
 
   const ask = useMutation({
     mutationFn: async ({ query }: { turn: string; query: string; show: boolean }) => {
+      // контекст: последние вопросы сессии — чтобы понимать «а 1970-х?», «а адрес?», «а газеты?»
+      const history = turnsRef.current
+        .filter((x) => x.a)
+        .slice(-4)
+        .map((x) => ({ q: x.sent ?? x.q, intent: x.a!.intent }));
       const res = await fetch("/api/assistant/ask", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query, lang }),
+        body: JSON.stringify({ query, lang, history }),
       });
       if (res.status === 429) throw new Error(t("assistant.tooMany"));
       if (!res.ok) throw new Error(t("assistant.error"));
@@ -257,13 +322,14 @@ export function AssistantChat({ compact = false, onNavigate }: { compact?: boole
     if (cmd.show && !cmd.rest) {
       // «покажи (все)» — про предыдущий ответ, без нового запроса
       const prev = lastAnswered();
-      if (!prev?.a) {
+      const src = prev?.a?.sources[cmd.idx] ?? prev?.a?.sources[0];
+      if (!prev?.a || !src) {
         if (voiceRef.current) say(t("voice.nothingToShow"));
         setTurns((ts) => [...ts, { q: v, error: t("voice.nothingToShow") }]);
         return;
       }
-      if (voiceRef.current) say(cmd.all ? t("voice.openingAll") : t("voice.opening", { title: prev.a.sources[0]!.title }));
-      open(cmd.all ? lp(`/catalog?q=${encodeURIComponent(parseShow(prev.q).rest || prev.q)}`) : prev.a.sources[0]!.url);
+      if (voiceRef.current) say(cmd.all ? t("voice.openingAll") : t("voice.opening", { title: src.title }));
+      open(cmd.all ? lp(`/catalog?q=${encodeURIComponent(prev.sent ?? prev.q)}`) : src.url);
       return;
     }
     if (cmd.show && cmd.all) {
@@ -271,8 +337,10 @@ export function AssistantChat({ compact = false, onNavigate }: { compact?: boole
       open(lp(`/catalog?q=${encodeURIComponent(cmd.rest)}`));
       return;
     }
-    setTurns((ts) => [...ts, { q: v, show: cmd.show }]);
-    ask.mutate({ turn: v, query: cmd.show ? cmd.rest : v, show: cmd.show });
+    hush(); // новый вопрос — старый ответ больше не читаем
+    const sent = cmd.show ? cmd.rest : v;
+    setTurns((ts) => [...ts, { q: v, sent, show: cmd.show }]);
+    ask.mutate({ turn: v, query: sent, show: cmd.show });
   };
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -500,6 +568,11 @@ export function AssistantChat({ compact = false, onNavigate }: { compact?: boole
       <button type="button" className="btn-ghost mt-2 self-start px-3" aria-pressed={voiceOn} onClick={toggleVoice}>
         <Icon name="volume" size={20} /> {t("voice.readAloud")}: {voiceOn ? t("voice.on") : t("voice.off")}
       </button>
+      {turns.length > 0 && (
+        <button type="button" className="btn-ghost mt-1 self-start px-3" onClick={newChat}>
+          {t("assistant.newChat")}
+        </button>
+      )}
       {!voiceAvailable && <p className="mt-2 text-sm text-muted">{t("voice.unsupported")}</p>}
       <p className="mt-2 text-sm text-muted">{t("assistant.privacy")}</p>
     </div>

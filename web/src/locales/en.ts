@@ -387,6 +387,7 @@ const en: Dict = {
     error: "Could not send feedback. Please check the text and try again.",
   },
   assistant: {
+    newChat: "Start a new conversation",
     short: "Assistant",
     title: "AI assistant",
     open: "Open AI assistant",

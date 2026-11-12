@@ -178,3 +178,38 @@ async def test_speak_returns_audio(client: AsyncClient, monkeypatch: pytest.Monk
     r = await client.post("/api/assistant/speak", json={"text": "Привет", "lang": "ru"})
     assert r.status_code == 200 and r.headers["content-type"] == "audio/mpeg" and r.content == b"ID3fake"
     assert (await client.post("/api/assistant/speak", json={"text": "x" * 401})).status_code == 422
+
+
+def test_follow_up_keeps_context() -> None:
+    first = rule_extract("фото Лениногорска")
+    follow = rule_extract("а 1950-х?")
+    assert pipeline._is_follow_up("а 1950-х?", follow)
+    merged = pipeline._merge(follow, first)
+    assert (merged.place, merged.doc_type, merged.period_from) == ("Риддер", "photo", 1950)
+    # новая тема заменяет старую, место остаётся
+    topic = pipeline._merge(rule_extract("а старые постройки?"), merged)
+    assert topic.keywords == ["старые", "постройки"] and topic.place == "Риддер"
+    # самостоятельный вопрос — не уточнение
+    fresh = "фотографии Усть-Каменогорска 1960-х"
+    assert not pipeline._is_follow_up(fresh, rule_extract(fresh))
+
+
+def test_place_and_war_words_are_not_keywords() -> None:
+    it = rule_extract("фото Старых рудничных построек в Лениногорске")
+    assert it.place == "Риддер" and it.keywords == ["старых", "рудничных", "построек"]
+    war = rule_extract("газеты военных лет")
+    assert (war.period_from, war.period_to) == (1941, 1945) and war.keywords == ["газеты"]
+    assert rule_extract("военный завод").period_from is None
+
+
+async def test_conversation_context(client: AsyncClient) -> None:
+    r1 = await _ask(client, "телефон Риддерского филиала")
+    r = await client.post(
+        "/api/assistant/ask",
+        json={
+            "query": "а адрес?",
+            "lang": "ru",
+            "history": [{"q": "телефон Риддерского филиала", "intent": r1["intent"]}],
+        },
+    )
+    assert r.status_code == 200 and "Риддер" in r.json()["text"] and "Адрес" in r.json()["text"]
