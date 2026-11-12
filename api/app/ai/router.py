@@ -52,6 +52,7 @@ class AskOut(BaseModel):
     degraded: bool
     removed_items: int
     disclaimer: str
+    lang: str
 
 
 @router.post("/ask", response_model=AskOut, dependencies=[Depends(rate_limit("20/minute", "assistant"))])

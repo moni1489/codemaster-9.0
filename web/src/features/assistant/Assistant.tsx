@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { type FormEvent, useEffect, useRef, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useLang, useLocalePath } from "../../app/lang";
 import { useT } from "../../app/useT";
 import { Icon } from "../../components/ui/Icon";
@@ -29,6 +29,7 @@ interface AskResponse {
 
 interface Turn {
   q: string;
+  show?: boolean;
   a?: AskResponse;
   error?: string;
 }
@@ -130,8 +131,38 @@ function stopSpeaking(): void {
   if (canSpeak()) window.speechSynthesis.cancel();
 }
 
+// «покажи мне …» / «открой …» — не рассказывать, а сразу открыть найденное на экране
+const SHOW_RE = /^\s*(?:покажи(?:те)?|открой(?:те)?|выведи(?:те)?|көрсет(?:іңіз)?|ашыңыз|show|open)(?:\s+(?:мне|маған|me))?(?=[\s,.!?]|$)[\s,.!?]*/i;
+const ALL_RE = /^(?:вс[её]|барлығын|all|everything)(?=[\s,.!?]|$)[\s,.!?]*/i;
+// после «покажи» ничего по сути не сказано — значит, про предыдущий ответ
+const THAT_RE = /^(?:его|её|это|этот|эту|первый|первую|оны|соны|it|this|that|the first one)?[\s.!?]*$/i;
+
+// в казахском глагол обычно в конце: «Өскемен фотосуреттерін көрсет»
+const SHOW_END_RE = /(?:^|[\s,]+)(?:маған\s+)?(?:көрсет(?:іңіз)?|ашыңыз)[\s.!?]*$/i;
+
+export function parseShow(text: string): { show: boolean; all: boolean; rest: string } {
+  const m = SHOW_RE.exec(text);
+  const end = m ? null : SHOW_END_RE.exec(text);
+  if (!m && !end) return { show: false, all: false, rest: text };
+  let rest = m ? text.slice(m[0].length) : text.slice(0, end!.index);
+  const all = ALL_RE.exec(rest);
+  if (all) rest = rest.slice(all[0].length);
+  return { show: true, all: !!all, rest: THAT_RE.test(rest) ? "" : rest.trim() };
+}
+
+const VOICE_KEY = "assistant.voice";
+function voicePref(): boolean {
+  try {
+    return localStorage.getItem(VOICE_KEY) !== "off";
+  } catch {
+    return true;
+  }
+}
+
 /** Чат помощника: ответ всегда с источниками-ссылками и пометкой «сформировано автоматически». */
-export function AssistantChat({ compact = false }: { compact?: boolean }) {
+export function AssistantChat({ compact = false, onNavigate }: { compact?: boolean; onNavigate?: () => void }) {
+  const navigate = useNavigate();
+  const lp = useLocalePath();
   const { t } = useT();
   const lang = useLang();
   const [q, setQ] = useState("");
@@ -139,7 +170,20 @@ export function AssistantChat({ compact = false }: { compact?: boolean }) {
   const [listening, setListening] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [voiceError, setVoiceError] = useState<string | null>(null);
-  const readAloud = useRef(false);
+  // ответ сначала читается вслух — по умолчанию включено, выбор запоминается
+  const [voiceOn, setVoiceOn] = useState(voicePref);
+  const voiceRef = useRef(voiceOn);
+  voiceRef.current = voiceOn;
+  const toggleVoice = () => {
+    const next = !voiceOn;
+    setVoiceOn(next);
+    if (!next) hush();
+    try {
+      localStorage.setItem(VOICE_KEY, next ? "on" : "off");
+    } catch {
+      /* без хранилища — просто не запомним */
+    }
+  };
   const recRef = useRef<Recognition | null>(null);
   const mediaRef = useRef<MediaRecorder | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
@@ -163,7 +207,7 @@ export function AssistantChat({ compact = false }: { compact?: boolean }) {
   };
 
   const ask = useMutation({
-    mutationFn: async (query: string) => {
+    mutationFn: async ({ query }: { turn: string; query: string; show: boolean }) => {
       const res = await fetch("/api/assistant/ask", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -173,13 +217,17 @@ export function AssistantChat({ compact = false }: { compact?: boolean }) {
       if (!res.ok) throw new Error(t("assistant.error"));
       return (await res.json()) as AskResponse;
     },
-    onSuccess: (a, query) => {
-      setTurns((ts) => ts.map((x) => (x.q === query && !x.a ? { ...x, a } : x)));
-      if (readAloud.current) say(a.speech || a.text);
+    onSuccess: (a, { turn, show }) => {
+      setTurns((ts) => ts.map((x) => (x.q === turn && !x.a ? { ...x, a } : x)));
+      const top = a.sources[0];
+      if (show && top) {
+        if (voiceRef.current) say(t("voice.opening", { title: top.title }));
+        open(top.url);
+      } else if (voiceRef.current) say(a.speech || a.text);
     },
-    onError: (e, query) => {
-      setTurns((ts) => ts.map((x) => (x.q === query && !x.a ? { ...x, error: (e as Error).message } : x)));
-      if (readAloud.current) say((e as Error).message);
+    onError: (e, { turn }) => {
+      setTurns((ts) => ts.map((x) => (x.q === turn && !x.a ? { ...x, error: (e as Error).message } : x)));
+      if (voiceRef.current) say((e as Error).message);
     },
   });
   useEffect(() => {
@@ -190,18 +238,40 @@ export function AssistantChat({ compact = false }: { compact?: boolean }) {
     () => () => {
       recRef.current?.stop();
       if (mediaRef.current?.state === "recording") mediaRef.current.stop();
-      stopSpeaking();
     },
     [],
   );
 
-  const send = (query: string, byVoice = false) => {
+  const open = (to: string) => {
+    navigate(to);
+    onNavigate?.();
+  };
+  const lastAnswered = () => [...turns].reverse().find((x) => x.a?.sources.length);
+
+  const send = (query: string) => {
     const v = query.trim();
     if (v.length < 2 || ask.isPending) return;
-    readAloud.current = byVoice;
-    setTurns((ts) => [...ts, { q: v }]);
     setQ("");
-    ask.mutate(v);
+    const cmd = parseShow(v);
+    if (cmd.show && !cmd.rest) {
+      // «покажи (все)» — про предыдущий ответ, без нового запроса
+      const prev = lastAnswered();
+      if (!prev?.a) {
+        if (voiceRef.current) say(t("voice.nothingToShow"));
+        setTurns((ts) => [...ts, { q: v, error: t("voice.nothingToShow") }]);
+        return;
+      }
+      if (voiceRef.current) say(cmd.all ? t("voice.openingAll") : t("voice.opening", { title: prev.a.sources[0]!.title }));
+      open(cmd.all ? lp(`/catalog?q=${encodeURIComponent(parseShow(prev.q).rest || prev.q)}`) : prev.a.sources[0]!.url);
+      return;
+    }
+    if (cmd.show && cmd.all) {
+      if (voiceRef.current) say(t("voice.openingAll"));
+      open(lp(`/catalog?q=${encodeURIComponent(cmd.rest)}`));
+      return;
+    }
+    setTurns((ts) => [...ts, { q: v, show: cmd.show }]);
+    ask.mutate({ turn: v, query: cmd.show ? cmd.rest : v, show: cmd.show });
   };
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -244,7 +314,7 @@ export function AssistantChat({ compact = false }: { compact?: boolean }) {
         const text = ((await res.json()) as { text: string }).text.trim();
         if (text) {
           setQ(text);
-          send(text, true);
+          send(text);
         } else setVoiceError(t("voice.notHeard"));
       } catch (e) {
         setVoiceError((e as Error).message);
@@ -290,7 +360,7 @@ export function AssistantChat({ compact = false }: { compact?: boolean }) {
     r.onend = () => {
       recRef.current = null;
       setListening(false);
-      if (final.trim()) send(final, true);
+      if (final.trim()) send(final);
     };
     recRef.current = r;
     setListening(true);
@@ -424,6 +494,9 @@ export function AssistantChat({ compact = false }: { compact?: boolean }) {
           <Icon name="arrow" size={22} />
         </button>
       </form>
+      <button type="button" className="btn-ghost mt-2 self-start px-3" aria-pressed={voiceOn} onClick={toggleVoice}>
+        <Icon name="volume" size={20} /> {t("voice.readAloud")}: {voiceOn ? t("voice.on") : t("voice.off")}
+      </button>
       {!voiceAvailable && <p className="mt-2 text-sm text-muted">{t("voice.unsupported")}</p>}
       <p className="mt-2 text-sm text-muted">{t("assistant.privacy")}</p>
     </div>
@@ -435,37 +508,53 @@ export function AssistantWidget() {
   const lp = useLocalePath();
   const { pathname } = useLocation();
   const [open, setOpen] = useState(false);
+  const [started, setStarted] = useState(false); // после первого открытия чат не размонтируем — история сохраняется
   if (pathname.endsWith("/assistant")) return null;
-  if (!open)
-    return (
+  const close = () => {
+    stopSpeaking();
+    setOpen(false);
+  };
+  // «покажи»: на телефоне окно на весь экран — прячем его, чтобы было видно открытый документ
+  const afterNavigate = () => {
+    if (!window.matchMedia("(min-width: 640px)").matches) setOpen(false);
+  };
+  const button =
+    !open && (
       <button
         type="button"
         className="btn-primary btn-lg fixed bottom-4 right-4 z-40 max-w-[calc(100vw-2rem)] rounded-full px-5 shadow-xl ring-4 ring-bg"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          setOpen(true);
+          setStarted(true);
+        }}
         title={t("assistant.open")}
       >
         <Icon name="mic" size={24} /> {t("assistant.short")}
       </button>
     );
+  if (!started) return button;
   return (
+    <>
+    {button}
     // телефон — на весь экран (крупно и без мелких полей), планшет и шире — окно в углу
     <section
       aria-label={t("assistant.title")}
-      className="fixed inset-0 z-50 flex flex-col bg-bg p-4 sm:inset-auto sm:bottom-4 sm:right-4 sm:h-[min(40rem,85vh)] sm:w-[26rem] sm:rounded-xl sm:border sm:border-line sm:shadow-2xl"
+      className={`fixed inset-0 z-50 ${open ? "flex" : "hidden"} flex-col bg-bg p-4 sm:inset-auto sm:bottom-4 sm:right-4 sm:h-[min(40rem,85vh)] sm:w-[26rem] sm:rounded-xl sm:border sm:border-line sm:shadow-2xl`}
     >
       <div className="mb-3 flex items-center justify-between gap-2 border-b border-line pb-3">
         <h2 className="text-[1.25rem]">{t("assistant.title")}</h2>
         <div className="flex gap-2">
-          <Link to={lp("/assistant")} className="btn-ghost hidden px-3 sm:inline-flex" onClick={() => setOpen(false)}>
+          <Link to={lp("/assistant")} className="btn-ghost hidden px-3 sm:inline-flex" onClick={close}>
             {t("assistant.fullPage")}
           </Link>
-          <button type="button" className="btn-ghost px-4" onClick={() => setOpen(false)}>
+          <button type="button" className="btn-ghost px-4" onClick={close}>
             <Icon name="close" size={20} /> {t("common.close")}
           </button>
         </div>
       </div>
-      <AssistantChat compact />
+      <AssistantChat compact onNavigate={afterNavigate} />
     </section>
+    </>
   );
 }
 

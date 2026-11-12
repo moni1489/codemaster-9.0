@@ -9,6 +9,7 @@ from typing import Any, Protocol
 import httpx
 
 from app.ai.intent import Intent, rule_extract
+from app.ai.site import SiteItem, info_template, site_block
 from app.core.config import get_settings
 
 LANG_NAME = {"ru": "русском", "kk": "казахском", "en": "английском"}
@@ -34,6 +35,8 @@ class LLMProvider(Protocol):
     async def extract(self, query: str, lang: str) -> Intent: ...
 
     async def compose(self, query: str, lang: str, records: list[Record], restricted: bool) -> str: ...
+
+    async def answer_info(self, query: str, lang: str, items: list[SiteItem]) -> str: ...
 
 
 # Коротко и по-человечески: полный список с шифрами пользователь видит в карточках под ответом.
@@ -85,6 +88,9 @@ class RuleBasedProvider:
     async def compose(self, query: str, lang: str, records: list[Record], restricted: bool) -> str:
         return template_answer(lang, records, restricted)
 
+    async def answer_info(self, query: str, lang: str, items: list[SiteItem]) -> str:
+        return info_template(query, lang, items)
+
 
 EXTRACT_PROMPT = (
     "Разбери поисковый запрос к каталогу архива Восточно-Казахстанской области. Верни только JSON-объект с ключами "
@@ -112,6 +118,21 @@ def compose_prompt(lang: str, restricted: bool) -> str:
         )
         + "Не обещай выдать справку — сайт не принимает заявления. Не используй разметку Markdown."
     )
+
+
+def info_prompt(lang: str) -> str:
+    return (
+        "Ты — приветливый сотрудник Государственного архива ВКО. Ответь посетителю на "
+        f"{LANG_NAME.get(lang, 'русском')} языке, используя ТОЛЬКО фрагменты страниц сайта из блока <site>. "
+        "Ответ прочитают вслух: 2–3 коротких "
+        "простых предложения, до 50 слов, без Markdown и списков. Телефоны, адреса, цены, сроки и названия документов "
+        "копируй дословно. Если во фрагментах ответа нет — честно скажи, что на сайте этого не нашлось, и предложи "
+        "позвонить в архив. Не обещай принять заявление — сайт их не принимает."
+    )
+
+
+def info_user(query: str, items: list[SiteItem]) -> str:
+    return f"{site_block(query, items)}\n\nВопрос: {query}"
 
 
 def records_block(records: list[Record]) -> str:
@@ -197,6 +218,9 @@ class AnthropicProvider:
     async def compose(self, query: str, lang: str, records: list[Record], restricted: bool) -> str:
         return await self._ask(compose_prompt(lang, restricted), f"{records_block(records)}\n\nВопрос: {query}", 2048)
 
+    async def answer_info(self, query: str, lang: str, items: list[SiteItem]) -> str:
+        return await self._ask(info_prompt(lang), info_user(query, items), 1024)
+
 
 class OllamaProvider:
     name = "ollama"
@@ -226,6 +250,9 @@ class OllamaProvider:
 
     async def compose(self, query: str, lang: str, records: list[Record], restricted: bool) -> str:
         return await self._chat(compose_prompt(lang, restricted), f"{records_block(records)}\n\nВопрос: {query}", False)
+
+    async def answer_info(self, query: str, lang: str, items: list[SiteItem]) -> str:
+        return await self._chat(info_prompt(lang), info_user(query, items), False)
 
 
 class OpenRouterProvider:
@@ -267,6 +294,9 @@ class OpenRouterProvider:
 
     async def compose(self, query: str, lang: str, records: list[Record], restricted: bool) -> str:
         return await self._chat(compose_prompt(lang, restricted), records_block(records) + "\n\nВопрос: " + query)
+
+    async def answer_info(self, query: str, lang: str, items: list[SiteItem]) -> str:
+        return await self._chat(info_prompt(lang), info_user(query, items))
 
 
 def get_provider() -> LLMProvider:

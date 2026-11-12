@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.ai.intent import CIPHER_RE, URL_RE, UUID_RE, Intent, rule_extract, validate_answer
 from app.ai.providers import LLMProvider, Record, RuleBasedProvider, template_answer
+from app.ai.site import SiteItem, answer_lang, contact_answer, info_template, is_info_query, search_site
 from app.core.i18n import pick
 from app.core.logging import log
 from app.models import Document
@@ -54,7 +55,7 @@ CAT_WORD = {
 
 @dataclass
 class Answer:
-    status: str  # found | not_found | restricted
+    status: str  # found | not_found | restricted | info (ответ о самом сайте/архиве)
     text: str
     speech: str  # короткая версия для озвучки
     sources: list[dict[str, Any]]
@@ -66,6 +67,7 @@ class Answer:
     removed_items: int = 0
     disclaimer: str = ""
     notes: list[str] = field(default_factory=list)
+    lang: str = "ru"  # язык ответа: на казахский вопрос — по-казахски, даже на русской версии сайта
 
 
 async def _search(session: AsyncSession, intent: Intent, lang: str) -> list[Document]:
@@ -144,7 +146,70 @@ def _suggestions(intent: Intent, lang: str, status: str) -> list[str]:
     return out[:3]
 
 
+INFO_SUGGESTIONS = {
+    "ru": ["Телефон архива", "Режим работы читального зала", "Как получить архивную справку"],
+    "kk": ["Архивтің телефоны", "Оқу залының жұмыс уақыты", "Архивтік анықтаманы қалай алуға болады"],
+    "en": ["Archive phone number", "Reading room hours", "How to get an archival certificate"],
+}
+
+
+async def _info(
+    query: str,
+    lang: str,
+    provider: LLMProvider,
+    items: list[SiteItem],
+    text: str | None = None,
+    speech: str | None = None,
+) -> Answer:
+    """Ответ о самом сайте: контакты (готовый текст) или пересказ найденных страниц/FAQ."""
+    degraded, notes, name = False, [], "site"
+    if text is None:
+        name = provider.name
+        try:
+            text = await provider.answer_info(query, lang, items)
+        except Exception as exc:
+            log.warning("llm_info_failed", provider=provider.name, error=type(exc).__name__)
+            text, degraded, name = info_template(query, lang, items), True, "rule"
+            notes.append("llm_unavailable")
+    text, removed = validate_answer(text, set(), set(), {it.url for it in items})
+    seen: set[str] = set()
+    sources = []
+    for it in items:
+        if it.url not in seen:
+            seen.add(it.url)
+            sources.append(
+                {"id": it.url, "cipher": "", "title": it.title, "period": "", "file_access": "open", "url": it.url}
+            )
+    return Answer(
+        status="info",
+        text=text.strip(),
+        speech=speech or to_speech(text, max_sentences=3),
+        sources=sources,
+        suggestions=INFO_SUGGESTIONS[lang],
+        intent={},
+        provider=name,
+        is_llm=name not in ("site", "rule") and provider.is_llm,
+        degraded=degraded,
+        removed_items=removed,
+        disclaimer=DISCLAIMER[lang],
+        notes=notes,
+        lang=lang,
+    )
+
+
 async def ask(session: AsyncSession, query: str, lang: str, provider: LLMProvider) -> Answer:
+    lang = answer_lang(query, lang)
+    # 1) телефон/адрес/почта/режим — точные данные из карточки филиала
+    contact = await contact_answer(session, query, lang)
+    if contact:
+        return await _info(query, lang, provider, [contact[2]], text=contact[0], speech=contact[1])
+    # 2) вопрос о работе архива (справки, услуги, читальный зал…), а не о документах — сначала страницы сайта
+    base = rule_extract(query)
+    if is_info_query(query) and not (base.period_from or base.doc_type or base.restricted_topic):
+        items = await search_site(session, query, lang)
+        if items:
+            return await _info(query, lang, provider, items)
+
     degraded = False
     notes: list[str] = []
     try:
@@ -163,6 +228,9 @@ async def ask(session: AsyncSession, query: str, lang: str, provider: LLMProvide
     status = "restricted" if restricted else ("found" if records else "not_found")
 
     if status == "not_found":
+        items = await search_site(session, query, lang)  # 3) в каталоге пусто — может, это есть на сайте
+        if items:
+            return await _info(query, lang, provider, items)
         text = NOT_FOUND[lang]
     else:
         composer: LLMProvider = provider if not degraded else RuleBasedProvider()
@@ -203,4 +271,5 @@ async def ask(session: AsyncSession, query: str, lang: str, provider: LLMProvide
         removed_items=removed,
         disclaimer=DISCLAIMER[lang],
         notes=notes,
+        lang=lang,
     )

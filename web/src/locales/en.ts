@@ -39,6 +39,11 @@ const en: Dict = {
     unsupported: "This browser cannot recognise speech. Type your question below.",
     denied: "No access to the microphone. Allow it in the browser settings.",
     heroAsk: "Not sure where to look? Ask by voice",
+    opening: "Opening “{{title}}”.",
+    openingAll: "Showing all records found.",
+    nothingToShow: "First say what to find, for example: “Show me photos of Oskemen in the 1960s”.",
+    on: "on",
+    off: "off",
     heard: "You said"
   },
   a11y: {
