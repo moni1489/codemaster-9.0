@@ -13,7 +13,7 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, Response, Upl
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.ai.pipeline import ask
+from app.ai.pipeline import Turn, ask
 from app.ai.providers import get_provider
 from app.core.config import get_settings
 from app.core.db import get_session
@@ -35,9 +35,16 @@ SILENCE_PHRASES = (
 AUDIO_MIMES = ("audio/webm", "audio/ogg", "audio/mp4", "audio/mpeg", "audio/wav", "audio/x-wav", "video/webm")
 
 
+class HistoryTurn(BaseModel):
+    q: str = Field(max_length=500)
+    intent: dict[str, Any] | None = None
+
+
 class AskIn(BaseModel):
     query: str = Field(min_length=2, max_length=500)
     lang: str = Field(default="ru", pattern="^(kk|ru|en)$")
+    # предыдущие вопросы этой сессии (хранятся только в браузере, на сервере не сохраняются)
+    history: list[HistoryTurn] = Field(default_factory=list, max_length=6)
 
 
 class AskOut(BaseModel):
@@ -57,7 +64,8 @@ class AskOut(BaseModel):
 
 @router.post("/ask", response_model=AskOut, dependencies=[Depends(rate_limit("20/minute", "assistant"))])
 async def assistant_ask(body: AskIn, session: Annotated[AsyncSession, Depends(get_session)]) -> AskOut:
-    answer = await ask(session, body.query.strip(), body.lang, get_provider())
+    history = [Turn(q=h.q, intent=h.intent) for h in body.history]
+    answer = await ask(session, body.query.strip(), body.lang, get_provider(), history)
     session.add(
         SearchLog(query=body.query.strip()[:300], lang=body.lang, source="assistant", results_count=len(answer.sources))
     )

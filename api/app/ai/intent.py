@@ -39,8 +39,19 @@ STOP = {
     "хочу", "найти", "найди", "покажи", "есть", "ли", "в", "во", "на", "о", "об", "про", "по", "и", "а", "годах",
     "годы", "год", "года", "лет", "гг", "архив", "архиве", "документы", "документ", "материалы", "какие",
     "мне", "нужны", "нужно", "the", "of", "in", "find", "show", "me", "i", "want", "any", "documents", "about",
-    "жылдардағы", "жылдар", "туралы", "құжаттар", "керек", "что", "где", "with",
+    "жылдардағы", "жылдар", "туралы", "құжаттар", "керек", "что", "где", "with", "показать", "открой",
+    "көрсет", "көрсетіңіз", "маған", "времен", "время", "годов", "жылдарының", "жылдары", "жылдардың",
+    "предыдущие", "вопросы", "текущий", "вопрос", "документах", "документов",
 }  # fmt: skip
+
+
+# «военных лет», «годы войны» — это 1941–1945; сами слова тогда не ключевые (в названиях документов их нет)
+VOV_PHRASES = (
+    "вов", "великой отечественн", "великая отечественн", "войны 1941", "военных лет", "военные годы",
+    "военного времени", "военное время", "годы войны", "время войны", "в войну",
+    "ұлы отан", "соғыс жылдар", "wwii", "great patriotic", "wartime", "war years",
+)  # fmt: skip
+VOV_STEMS = ("вов", "военн", "войн", "великая", "великой", "отечеств", "соғыс", "ұлы", "отан", "wartime", "war")
 
 
 def parse_period(q: str) -> tuple[int | None, int | None]:
@@ -56,7 +67,7 @@ def parse_period(q: str) -> tuple[int | None, int | None]:
     if m:
         y = int(m.group(1))
         return y, y
-    if any(w in low for w in ("вов", "великой отечественной", "войны 1941", "ұлы отан", "wwii", "great patriotic")):
+    if any(w in low for w in VOV_PHRASES):
         return 1941, 1945
     return None, None
 
@@ -70,11 +81,13 @@ def rule_extract(query: str) -> Intent:
         if any(w in q for w in stems):
             it.doc_type = cat
             break
+    place_stems: list[str] = []
     for key, terms in DEFAULT_SYNONYMS.items():
         if key in ("photo", "newspaper", "map", "vov", "vko"):
             continue
         if any(normalize(t)[:6] in q for t in terms):
             it.place = terms[0]
+            place_stems = [normalize(t)[:6] for t in terms]  # «Лениногорске» — это тоже место, не ключевое слово
             break
     words = re.findall(r"[\w\-]+", q)
     cat_stems = [w for ws in CATEGORY_WORDS.values() for w in ws]
@@ -82,9 +95,12 @@ def rule_extract(query: str) -> Intent:
     for w in words:
         if w in STOP or len(w) < 3 or re.fullmatch(r"\d+.*", w):
             continue
-        if any(w.startswith(s) for s in cat_stems):
+        # категория «written» — это все письменные документы, поэтому «газета» остаётся словом поиска
+        if any(w.startswith(s) for s in cat_stems) and not w.startswith(("газет", "newspaper", "газеттер")):
             continue
-        if it.place and normalize(it.place)[:6] in w:
+        if any(ps in w for ps in place_stems):
+            continue
+        if it.period_from == 1941 and it.period_to == 1945 and w.startswith(VOV_STEMS):
             continue
         kws.append(w)
     it.keywords = kws[:6]

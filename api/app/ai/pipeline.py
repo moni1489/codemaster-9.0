@@ -5,19 +5,21 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
+from functools import partial
 from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.ai.intent import CIPHER_RE, URL_RE, UUID_RE, Intent, rule_extract, validate_answer
-from app.ai.providers import LLMProvider, Record, RuleBasedProvider, template_answer
-from app.ai.site import SiteItem, answer_lang, contact_answer, info_template, is_info_query, search_site
+from app.ai.providers import LLMProvider, Record, RuleBasedProvider, _intent_from_json, template_answer
+from app.ai.site import SiteItem, _stems, answer_lang, contact_answer, info_template, is_info_query, search_site
 from app.core.i18n import pick
 from app.core.logging import log
 from app.models import Document
 from app.search.base import SearchParams
 from app.search.postgres import get_search_backend
+from app.search.synonyms import normalize
 
 DISCLAIMER = {
     "ru": "Сформировано автоматически, не является архивной справкой.",
@@ -70,37 +72,44 @@ class Answer:
     lang: str = "ru"  # язык ответа: на казахский вопрос — по-казахски, даже на русской версии сайта
 
 
-async def _search(session: AsyncSession, intent: Intent, lang: str) -> list[Document]:
+async def _search(session: AsyncSession, intent: Intent, lang: str) -> tuple[list[Document], set[Any]]:
+    """Несколько попыток от точной к широкой; результаты объединяются. Вторым значением — id записей,
+    найденных по словам темы (полнотекстовый поиск с морфологией и синонимами), а не только по месту/типу."""
     backend = get_search_backend()
+    kw_q = " ".join(intent.keywords) or None
     base_q = " ".join(filter(None, [intent.place, *intent.keywords])) or None
+    cat = (intent.doc_type,) if intent.doc_type else ()
+    mk = partial(SearchParams, period_from=intent.period_from, period_to=intent.period_to, page_size=8, lang=lang)
     attempts = [
-        SearchParams(
-            q=base_q,
-            period_from=intent.period_from,
-            period_to=intent.period_to,
-            category=(intent.doc_type,) if intent.doc_type else (),
-            page_size=8,
-            lang=lang,
-        ),
-        SearchParams(
-            q=intent.place,
-            period_from=intent.period_from,
-            period_to=intent.period_to,
-            category=(intent.doc_type,) if intent.doc_type else (),
-            page_size=8,
-            lang=lang,
-        ),
-        SearchParams(q=base_q, period_from=intent.period_from, period_to=intent.period_to, page_size=8, lang=lang),
+        (mk(q=base_q, category=cat), True),  # место + тема + тип
+        (mk(q=kw_q, category=cat), True),  # тема + тип (место могло быть записано иначе)
+        (mk(q=intent.place, category=cat), False),  # всё по месту — только как запасной вариант
+        (mk(q=kw_q), True),  # тема без учёта типа
     ]
-    for p in attempts:
+    if not kw_q:  # без темы попытки «тема без места/типа» означали бы «всё подряд за период»
+        attempts = [attempts[0], attempts[2]]
+    ids: list[Any] = []
+    exact: set[Any] = set()
+    for p, by_topic in attempts:
         if not (p.q or p.period_from or p.category):
             continue
         res = await backend.search(session, p)
         if res.total and not res.fuzzy:
-            ids = [h.document_id for h in res.hits]
-            docs = {d.id: d for d in (await session.execute(select(Document).where(Document.id.in_(ids)))).scalars()}
-            return [docs[i] for i in ids if i in docs]
-    return []
+            found = [h.document_id for h in res.hits]
+            ids += [i for i in found if i not in ids]
+            if by_topic and intent.keywords:
+                exact.update(found)
+        if len(ids) >= 8:
+            break
+    if not ids:
+        return [], exact
+    docs = {d.id: d for d in (await session.execute(select(Document).where(Document.id.in_(ids)))).scalars()}
+    return [docs[i] for i in ids[:8] if i in docs], exact
+
+
+def _overlap(r: Record, intent: Intent) -> int:
+    """Сколько слов темы вопроса есть в названии/описании записи."""
+    return len(_stems(" ".join(intent.keywords)) & _stems(f"{r.title} {r.summary}"))
 
 
 def _record(d: Document, lang: str) -> Record:
@@ -197,34 +206,90 @@ async def _info(
     )
 
 
-async def ask(session: AsyncSession, query: str, lang: str, provider: LLMProvider) -> Answer:
-    lang = answer_lang(query, lang)
-    # 1) телефон/адрес/почта/режим — точные данные из карточки филиала
-    contact = await contact_answer(session, query, lang)
-    if contact:
-        return await _info(query, lang, provider, [contact[2]], text=contact[0], speech=contact[1])
-    # 2) вопрос о работе архива (справки, услуги, читальный зал…), а не о документах — сначала страницы сайта
+# Уточняющий вопрос: «а 1970-х?», «а газеты?», «а адрес?», «ал Риддерде?» — продолжает предыдущий
+FOLLOW_RE = re.compile(r"^(?:а|и|ещё|еще|тогда|также|теперь|ал|және|тағы|енді|and|also|now|what\s+about|how\s+about)\b")
+
+
+@dataclass
+class Turn:
+    """Предыдущий вопрос сессии (присылает браузер): текст и разобранный запрос."""
+
+    q: str
+    intent: dict[str, Any] | None = None
+
+
+def _is_follow_up(query: str, it: Intent) -> bool:
+    q = normalize(query)
+    return bool(FOLLOW_RE.match(q)) or (len(q.split()) <= 3 and not it.place and not it.keywords)
+
+
+def _merge(it: Intent, prev: Intent) -> Intent:
+    """Недостающее в уточнении берём из прошлого вопроса; новая тема заменяет старую."""
+    new_topic = bool(it.keywords) or (it.doc_type is not None and it.doc_type != prev.doc_type)
+    return Intent(
+        topic=it.topic if new_topic else prev.topic,
+        period_from=it.period_from or prev.period_from,
+        period_to=it.period_to or prev.period_to,
+        place=it.place or prev.place,
+        doc_type=it.doc_type or prev.doc_type,
+        keywords=it.keywords if new_topic else prev.keywords,
+        restricted_topic=it.restricted_topic or prev.restricted_topic,
+    )
+
+
+def _useful(it: Intent) -> bool:
+    return bool(it.place or it.period_from or it.doc_type or it.restricted_topic or len(it.keywords) >= 2)
+
+
+async def ask(
+    session: AsyncSession, query: str, lang: str, provider: LLMProvider, history: list[Turn] | None = None
+) -> Answer:
     base = rule_extract(query)
-    if is_info_query(query) and not (base.period_from or base.doc_type or base.restricted_topic):
-        items = await search_site(session, query, lang)
+    prev = history[-1] if history else None
+    follow = prev is not None and _is_follow_up(query, base)
+    # для поиска по сайту и для LLM уточнение склеиваем с прошлым вопросом: «телефон Риддерского филиала» + «а адрес?»
+    site_q = f"{prev.q} {query}" if follow and prev else query
+    llm_q = f"(Предыдущий вопрос: {prev.q})\n{query}" if follow and prev else query
+    lang = answer_lang(site_q, lang)  # «ал 1960 жылдар?» после казахского вопроса — тоже по-казахски
+
+    # 1) телефон/адрес/почта/режим — точные данные из карточки филиала
+    contact = await contact_answer(session, query, lang, context=prev.q if follow and prev else "")
+    if contact:
+        return await _info(llm_q, lang, provider, [contact[2]], text=contact[0], speech=contact[1])
+    # 2) вопрос о работе архива (справки, услуги, читальный зал…), а не о документах — сначала страницы сайта
+    if is_info_query(site_q) and not (base.period_from or base.doc_type or base.restricted_topic):
+        items = await search_site(session, site_q, lang)
         if items:
-            return await _info(query, lang, provider, items)
+            return await _info(llm_q, lang, provider, items)
 
     degraded = False
     notes: list[str] = []
-    try:
-        intent = await provider.extract(query, lang)
-    except Exception as exc:  # недоступен/ошибся LLM → детерминированный разбор
-        log.warning("llm_extract_failed", provider=provider.name, error=type(exc).__name__)
-        intent, degraded = rule_extract(query), True
-        notes.append("llm_unavailable")
+    intent = base
+    # LLM разбирает запрос, только если правила ничего не поняли: так ответ приходит вдвое быстрее
+    if provider.is_llm and not _useful(base) and not follow:
+        try:
+            intent = await provider.extract(query, lang)
+        except Exception as exc:  # недоступен/ошибся LLM → детерминированный разбор
+            log.warning("llm_extract_failed", provider=provider.name, error=type(exc).__name__)
+            notes.append("llm_unavailable")
+    if follow and prev:
+        intent = _merge(intent, _intent_from_json(prev.intent or {}, prev.q))
+    query = llm_q
 
-    docs = await _search(session, intent, lang)
+    docs, exact = await _search(session, intent, lang)
     restricted = intent.restricted_topic
     if restricted:
         # показываем только опубликованные описания с закрытыми копиями — без содержимого
         docs = [d for d in docs if d.file_access != "open"]
     records = [_record(d, lang) for d in docs]
+    # тема важнее места: «старые рудничные постройки в Лениногорске» выше «центральной площади Лениногорска»
+    exact_ids = {str(i) for i in exact}
+    scores = {r.id: _overlap(r, intent) + (1 if r.id in exact_ids else 0) for r in records}
+    records.sort(key=lambda r: -scores[r.id])  # sort стабильный — внутри равных сохраняется порядок поиска
+    loose = bool(intent.keywords) and bool(records) and scores[records[0].id] == 0
+    if not loose and intent.keywords:
+        records = [r for r in records if scores[r.id] > 0]  # есть точные — случайные «по месту» не нужны
+    records = records[:6]  # столько же, сколько карточек под ответом
     status = "restricted" if restricted else ("found" if records else "not_found")
 
     if status == "not_found":
@@ -235,10 +300,14 @@ async def ask(session: AsyncSession, query: str, lang: str, provider: LLMProvide
     else:
         composer: LLMProvider = provider if not degraded else RuleBasedProvider()
         try:
-            text = await composer.compose(query, lang, records, restricted)
+            text = (
+                template_answer(lang, records, restricted, loose)
+                if isinstance(composer, RuleBasedProvider)
+                else await composer.compose(query, lang, records, restricted)
+            )
         except Exception as exc:
             log.warning("llm_compose_failed", provider=provider.name, error=type(exc).__name__)
-            text, degraded = template_answer(lang, records, restricted), True
+            text, degraded = template_answer(lang, records, restricted, loose), True
             notes.append("llm_unavailable")
 
     text, removed = validate_answer(

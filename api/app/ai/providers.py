@@ -44,6 +44,7 @@ TEMPLATES = {
     "ru": {
         "found": "Нашлось записей: {n}. Лучше всего подходит «{title}»{period}. Остальные — в карточках ниже.",
         "found_one": "Нашлась одна запись: «{title}»{period}. Откройте карточку ниже.",
+        "loose": "Точно по вашему запросу ничего нет. Ближе всего — «{title}»{period}.",
         "restricted": "Доступ к таким документам ограничен: в них личные данные. Посмотреть их можно в читальном "
         "зале архива.",
         "restricted_found": "Ниже — только их описания, без копий.",
@@ -51,6 +52,7 @@ TEMPLATES = {
     "kk": {
         "found": "Табылған жазбалар: {n}. Ең сәйкесі — «{title}»{period}. Қалғандары төмендегі карточкаларда.",
         "found_one": "Бір жазба табылды: «{title}»{period}. Төмендегі карточканы ашыңыз.",
+        "loose": "Дәл осы сұрау бойынша ештеңе жоқ. Ең жақыны — «{title}»{period}.",
         "restricted": "Мұндай құжаттарға қолжетімділік шектелген: оларда жеке деректер бар. Оларды архивтің оқу "
         "залында көруге болады.",
         "restricted_found": "Төменде тек сипаттамалары, көшірмесіз.",
@@ -58,6 +60,7 @@ TEMPLATES = {
     "en": {
         "found": "Found {n} records. The best match is “{title}”{period}. The rest are in the cards below.",
         "found_one": "Found one record: “{title}”{period}. Open the card below.",
+        "loose": "Nothing matches exactly. The closest is “{title}”{period}.",
         "restricted": "Access to such documents is restricted because they contain personal data. You can see them "
         "in the archive reading room.",
         "restricted_found": "Below are their descriptions only, without copies.",
@@ -65,14 +68,14 @@ TEMPLATES = {
 }
 
 
-def template_answer(lang: str, records: list[Record], restricted: bool) -> str:
+def template_answer(lang: str, records: list[Record], restricted: bool, loose: bool = False) -> str:
     t = TEMPLATES.get(lang, TEMPLATES["ru"])
     if restricted:
         return t["restricted"] + (" " + t["restricted_found"] if records else "")
     if not records:
         return ""
     r = records[0]
-    key = "found_one" if len(records) == 1 else "found"
+    key = "loose" if loose else "found_one" if len(records) == 1 else "found"
     return t[key].format(n=len(records), title=r.title, period=f" ({r.period})" if r.period else "")
 
 

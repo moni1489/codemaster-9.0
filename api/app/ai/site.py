@@ -109,12 +109,21 @@ def is_info_query(query: str) -> bool:
     return bool(INFO.search(q) or CONTACTS.search(q) or any(rx.search(q) for rx in ASK.values()))
 
 
-async def contact_answer(session: AsyncSession, query: str, lang: str) -> tuple[str, str, SiteItem] | None:
-    """Телефон/адрес/почта/режим работы — точные данные из карточки филиала, без LLM."""
+async def contact_answer(
+    session: AsyncSession, query: str, lang: str, context: str = ""
+) -> tuple[str, str, SiteItem] | None:
+    """Телефон/адрес/почта/режим работы — точные данные из карточки филиала, без LLM.
+    context — прошлый вопрос: «телефон Риддерского филиала» → «а адрес?» = адрес того же филиала."""
     q = normalize(query)
     asked = [k for k, rx in ASK.items() if rx.search(q)]
     if not asked and not CONTACTS.search(q):
-        return None
+        if not context:
+            return None
+        c = normalize(context)  # «а Риддерского филиала?» после «телефон архива» — спрашивают то же самое
+        asked = [k for k, rx in ASK.items() if rx.search(c)]
+        if not asked and not CONTACTS.search(c):
+            return None
+    q = f"{normalize(context)} {q}" if context else q
     branches = (
         (await session.execute(select(Branch).where(Branch.visible.is_(True)).order_by(Branch.sort_order)))
         .scalars()
