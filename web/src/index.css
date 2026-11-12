@@ -2,18 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Цветовые токены (RGB-тройки). Контраст текста ≥ 4.5:1 в обеих темах. */
+/*
+  Одна система на весь сайт (tasteskill, kind: service).
+  Палитра «Sheet and biro»: белый фон, чернила #111, один синий акцент #1a4be0.
+  Шрифты: Source Serif 4 (заголовки) / Libre Franklin (текст), self-hosted (CSP font-src 'self').
+  Базовый размер 18px, контролы 48px, читаемый текст не меньше 16px — сайтом пользуются и пожилые.
+*/
 :root,
 [data-theme="light"] {
-  --c-bg: 248 246 241;
-  --c-surface: 255 255 255;
-  --c-surface-2: 240 236 227;
-  --c-line: 214 207 193;
-  --c-ink: 28 31 36;
-  --c-muted: 84 88 96;
-  --c-primary: 14 76 92;
+  --c-bg: 255 255 255;
+  --c-surface: 244 244 244;
+  --c-surface-2: 233 233 233;
+  --c-line: 220 220 220;
+  --c-ink: 17 17 17;
+  --c-muted: 95 95 95;
+  --c-primary: 26 75 224;
   --c-primary-ink: 255 255 255;
-  --c-accent: 150 80 20;
+  --c-accent: 26 75 224;
   --c-danger: 170 30 40;
   --c-ok: 22 110 60;
   --c-warn: 135 85 0;
@@ -21,15 +26,15 @@
 }
 
 [data-theme="dark"] {
-  --c-bg: 17 21 26;
-  --c-surface: 25 31 38;
-  --c-surface-2: 34 41 50;
-  --c-line: 58 67 78;
-  --c-ink: 232 230 225;
-  --c-muted: 170 176 186;
-  --c-primary: 110 190 205;
-  --c-primary-ink: 10 24 30;
-  --c-accent: 228 168 98;
+  --c-bg: 17 17 17;
+  --c-surface: 30 30 30;
+  --c-surface-2: 42 42 42;
+  --c-line: 62 62 62;
+  --c-ink: 255 255 255;
+  --c-muted: 165 165 165;
+  --c-primary: 150 185 255;
+  --c-primary-ink: 17 17 17;
+  --c-accent: 150 185 255;
   --c-danger: 255 130 130;
   --c-ok: 120 210 150;
   --c-warn: 240 195 90;
@@ -37,56 +42,68 @@
 }
 
 @layer base {
-  html { -webkit-text-size-adjust: 100%; }
-  body { @apply bg-bg text-ink font-sans antialiased; }
-  h1, h2, h3 { @apply font-serif; }
-  :focus-visible { outline: 3px solid rgb(var(--c-accent)); outline-offset: 2px; }
-  a { @apply text-primary underline-offset-2; }
+  html { font-size: 18px; -webkit-text-size-adjust: 100%; }
+  body { @apply bg-bg font-sans leading-relaxed text-ink antialiased; }
+  h1, h2, h3 { @apply font-serif font-normal tracking-tight; }
+  h1 { @apply text-[2rem] leading-[1.15] sm:text-[2.5rem]; }
+  h2 { @apply text-[1.5rem] leading-tight sm:text-[1.75rem]; }
+  h3 { @apply text-[1.25rem] leading-snug; }
+  :focus-visible { outline: 3px solid rgb(var(--c-primary)); outline-offset: 2px; }
+  a { @apply text-primary underline decoration-1 underline-offset-4 hover:decoration-2; }
+  input[type="checkbox"], input[type="radio"] { @apply h-5 w-5 shrink-0 accent-primary; }
+  select { @apply cursor-pointer; }
+  img { @apply max-w-full; }
 }
 
 @layer components {
-  .container-page { @apply mx-auto w-full max-w-content px-4 sm:px-6; }
+  .container-page { @apply mx-auto w-full max-w-content px-4 sm:px-6 lg:px-10; }
   .card { @apply rounded-xl border border-line bg-surface; }
-  .btn { @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium no-underline transition-colors disabled:opacity-50; }
-  .btn-primary { @apply btn bg-primary text-primary-ink hover:opacity-90; }
-  .btn-ghost { @apply btn border border-line bg-surface text-ink hover:bg-surface-2; }
-  .badge { @apply inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium; }
-  .input { @apply w-full rounded-lg border border-line bg-surface px-3 py-2 text-ink placeholder:text-muted; }
-  .cipher { @apply font-mono break-all; }
-  .sr-only-focusable:not(:focus) { @apply sr-only; }
-}
-
-@layer components {
-  /* Фон главного баннера: «архивная бумага» без внешних изображений */
-  .hero-bg {
-    background:
-      radial-gradient(1200px 400px at 85% -10%, rgb(var(--c-accent) / 0.14), transparent 60%),
-      radial-gradient(900px 500px at -10% 110%, rgb(var(--c-primary) / 0.14), transparent 60%),
-      repeating-linear-gradient(0deg, rgb(var(--c-line) / 0.25) 0 1px, transparent 1px 28px),
-      rgb(var(--c-bg));
+  /* карточка-ссылка: поднимается на 2px */
+  .card-link { @apply card block text-ink no-underline transition-[transform,border-color] duration-200 hover:-translate-y-0.5 hover:border-ink; }
+  .btn {
+    @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-lg px-6 py-2 text-[1rem] font-medium leading-tight no-underline transition-[transform,background-color,opacity] duration-150 hover:-translate-y-px active:translate-y-0 active:scale-[.98] disabled:pointer-events-none disabled:opacity-50;
   }
+  .btn-primary { @apply btn bg-primary text-primary-ink hover:opacity-90; }
+  .btn-ghost { @apply btn border border-line bg-bg text-ink hover:bg-surface; }
+  .btn-icon { @apply min-w-12 px-0; }
+  .badge { @apply inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-sm font-medium leading-snug; }
+  .input { @apply min-h-12 w-full rounded-lg border border-line bg-bg px-4 py-2 text-[1rem] text-ink placeholder:text-muted; }
+  .cipher { @apply font-mono text-[0.9em] break-all; }
+  .sr-only-focusable:not(:focus) { @apply sr-only; }
+  .meta { @apply text-sm text-muted; }
+  /* фото в рамке: мягкий зум при наведении на ссылку */
+  .photo { @apply overflow-hidden bg-surface-2; }
+  .photo img { @apply h-full w-full object-cover transition-transform duration-300; }
+  a:hover .photo img, .card-link:hover .photo img { transform: scale(1.03); }
+  /* вход hero один раз при загрузке */
+  [data-enter] { animation: enter .6s ease-out both; }
+  @keyframes enter { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  .divider { @apply border-t border-line; }
 }
 
-/* Типографика CMS-контента (без плагина typography) */
+@media (prefers-reduced-motion: reduce) {
+  [data-enter], .btn, .card-link, .photo img { animation: none; transition: none; }
+  .card-link:hover, .btn:hover { transform: none; }
+}
+
+/* Типографика CMS-контента */
 @layer components {
   .prose { @apply max-w-3xl leading-relaxed; }
-  .prose p { @apply my-3; }
-  .prose h2 { @apply mb-2 mt-8 text-2xl; }
-  .prose h3 { @apply mb-2 mt-6 text-xl; }
-  .prose ul { @apply my-3 list-disc space-y-1 pl-6; }
-  .prose ol { @apply my-3 list-decimal space-y-1 pl-6; }
-  .prose a { @apply underline; }
+  .prose p { @apply my-4; }
+  .prose h2 { @apply mb-3 mt-10; }
+  .prose h3 { @apply mb-2 mt-8; }
+  .prose ul { @apply my-4 list-disc space-y-1 pl-6; }
+  .prose ol { @apply my-4 list-decimal space-y-1 pl-6; }
   .prose a[target="_blank"]::after { content: " ↗"; }
   .prose small { @apply text-sm text-muted; }
-  .prose code { @apply rounded bg-surface-2 px-1 font-mono text-sm; }
+  .prose code { @apply rounded bg-surface-2 px-1 font-mono text-[0.9em]; }
   .prose blockquote { @apply border-l-4 border-line pl-4 italic; }
-  .prose table { @apply my-4 block w-full overflow-x-auto border-collapse text-sm md:table; }
+  .prose table { @apply my-4 block w-full overflow-x-auto border-collapse md:table; }
   .prose th, .prose td { @apply border border-line px-3 py-2 text-left align-top; }
   .prose th { @apply bg-surface-2 font-semibold; }
 }
 
-/* Заголовок панели фильтров — внутри карточки, а не «врезкой» в рамку fieldset */
 @layer components {
-  fieldset.card > legend { @apply float-left mb-3 w-full p-0 font-serif text-lg; }
+  fieldset.card > legend { @apply float-left mb-3 w-full p-0 font-serif text-[1.25rem]; }
   fieldset.card > legend + * { clear: both; }
 }

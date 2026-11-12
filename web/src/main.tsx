@@ -4,6 +4,8 @@ import { createRoot } from "react-dom/client";
 import { RouterProvider } from "react-router-dom";
 import "./app/i18n";
 import { router } from "./app/router";
+import "@fontsource-variable/source-serif-4";
+import "@fontsource-variable/libre-franklin";
 import "./index.css";
 
 const queryClient = new QueryClient({

@@ -1,38 +1,39 @@
 import clsx from "clsx";
-import { type FormEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useT } from "../../app/useT";
-import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import { useLang, useLocalePath, useSwitchLangHref } from "../../app/lang";
 import { useTheme } from "../../app/theme";
-import { SITE, NAV } from "../../lib/site";
+import { NAV } from "../../lib/site";
 import { LANGS } from "../../lib/types";
 import { Icon } from "../ui/Icon";
 import { Logo } from "./Logo";
 
-const LANG_LABEL = { kk: "ҚАЗ", ru: "РУС", en: "ENG" } as const;
+const LANG_LABEL = { kk: "Қаз", ru: "Рус", en: "Eng" } as const;
 
-function LangSwitch() {
+export function LangSwitch() {
   const { t } = useT();
   const lang = useLang();
   const href = useSwitchLangHref();
   return (
-    <div role="group" aria-label={t("a11y.langSwitch")} className="flex overflow-hidden rounded-lg border border-line">
+    <ul role="list" aria-label={t("a11y.langSwitch")} className="flex gap-1">
       {LANGS.map((l) => (
-        <Link
-          key={l}
-          to={href(l)}
-          hrefLang={l}
-          lang={l}
-          aria-current={l === lang ? "true" : undefined}
-          className={clsx(
-            "px-2 py-1 text-xs font-semibold no-underline",
-            l === lang ? "bg-primary text-primary-ink" : "text-ink hover:bg-surface-2",
-          )}
-        >
-          {LANG_LABEL[l]}
-        </Link>
+        <li key={l}>
+          <Link
+            to={href(l)}
+            hrefLang={l}
+            lang={l}
+            aria-current={l === lang ? "true" : undefined}
+            className={clsx(
+              "inline-flex min-h-12 min-w-12 items-center justify-center rounded-lg px-3 font-medium no-underline",
+              l === lang ? "bg-ink text-bg" : "text-ink hover:bg-surface",
+            )}
+          >
+            {LANG_LABEL[l]}
+          </Link>
+        </li>
       ))}
-    </div>
+    </ul>
   );
 }
 
@@ -41,42 +42,9 @@ function ThemeToggle() {
   const [theme, toggle] = useTheme();
   const label = theme === "dark" ? t("a11y.themeToLight") : t("a11y.themeToDark");
   return (
-    <button type="button" onClick={toggle} className="btn-ghost px-2 py-1" aria-label={label} title={label}>
-      <Icon name={theme === "dark" ? "sun" : "moon"} size={18} />
+    <button type="button" onClick={toggle} className="btn-ghost btn-icon" aria-label={label} title={label}>
+      <Icon name={theme === "dark" ? "sun" : "moon"} size={22} />
     </button>
-  );
-}
-
-function HeaderSearch({ onDone }: { onDone?: () => void }) {
-  const { t } = useT();
-  const lp = useLocalePath();
-  const navigate = useNavigate();
-  const [q, setQ] = useState("");
-  const submit = (e: FormEvent) => {
-    e.preventDefault();
-    const query = q.trim();
-    navigate(lp(`/catalog${query ? `?q=${encodeURIComponent(query)}` : ""}`));
-    onDone?.();
-  };
-  return (
-    <form role="search" onSubmit={submit} className="flex w-full items-center gap-2">
-      <label htmlFor="header-search" className="sr-only">
-        {t("header.searchPlaceholder")}
-      </label>
-      <input
-        id="header-search"
-        type="search"
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
-        placeholder={t("header.searchPlaceholder")}
-        className="input"
-        maxLength={300}
-      />
-      <button type="submit" className="btn-primary" aria-label={t("header.search")}>
-        <Icon name="search" size={18} />
-        <span className="hidden sm:inline">{t("header.search")}</span>
-      </button>
-    </form>
   );
 }
 
@@ -88,71 +56,41 @@ export function Header() {
   useEffect(() => setOpen(false), [location.pathname]);
 
   return (
-    <header className="border-b border-line bg-surface">
-      {/* верхняя строка: контакты, соцсети, язык, тема */}
-      <div className="border-b border-line bg-surface-2 text-sm">
-        <div className="container-page flex flex-wrap items-center justify-between gap-2 py-1.5">
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-muted">
-            <a href={`tel:${SITE.phoneReception.replace(/[^\d+]/g, "")}`} className="inline-flex items-center gap-1 text-ink no-underline hover:underline">
-              <Icon name="phone" size={14} />
-              <span className="sr-only sm:not-sr-only">{t("header.phone")}:</span> {SITE.phoneReception}
-            </a>
-            <a href={`mailto:${SITE.email}`} className="hidden items-center gap-1 text-ink no-underline hover:underline md:inline-flex">
-              <Icon name="mail" size={14} /> {SITE.email}
-            </a>
-            <a href={SITE.social.instagram.url} target="_blank" rel="noopener noreferrer" className="text-ink" aria-label={`Instagram ${SITE.social.instagram.handle} (${t("a11y.external")})`}>
-              <Icon name="instagram" size={16} />
-            </a>
-            <a href={SITE.social.facebook.url} target="_blank" rel="noopener noreferrer" className="text-ink" aria-label={`Facebook ${SITE.social.facebook.handle} (${t("a11y.external")})`}>
-              <Icon name="facebook" size={16} />
-            </a>
-          </div>
-          <div className="flex items-center gap-2">
-            <LangSwitch />
-            <ThemeToggle />
-          </div>
-        </div>
-      </div>
-
-      {/* логотип, поиск, кнопка каталога */}
-      <div className="container-page flex items-center gap-4 py-3">
+    <header className="border-b border-line bg-bg">
+      <div className="container-page flex min-h-[4.5rem] items-center gap-4 py-2">
         <Link to={lp("/")} className="flex min-w-0 flex-1 items-center gap-3 text-ink no-underline lg:flex-none">
-          <Logo className="h-11 w-11 shrink-0" />
-          <span className="min-w-0">
-            <span className="block font-serif text-lg font-bold leading-tight">{t("org.short")}</span>
-            <span className="hidden max-w-md text-xs leading-snug text-muted md:block">{t("org.full")}</span>
-          </span>
+          <Logo className="h-12 w-12 shrink-0" />
+          <span className="truncate font-serif text-[1.25rem] leading-tight">{t("org.short")}</span>
         </Link>
-        <div className="hidden flex-1 lg:block">
-          <HeaderSearch />
+        <div className="ml-auto hidden items-center gap-3 lg:flex">
+          <LangSwitch />
+          <ThemeToggle />
+          <Link to={lp("/catalog")} className="btn-primary whitespace-nowrap">
+            {t("header.catalogButton")}
+          </Link>
         </div>
-        <Link to={lp("/catalog")} className="btn-primary hidden whitespace-nowrap sm:inline-flex">
-          <Icon name="folder" size={18} />
-          {t("header.catalogButton")}
-        </Link>
         <button
           type="button"
-          className="btn-ghost px-2 lg:hidden"
+          className="btn-ghost lg:hidden"
           aria-expanded={open}
           aria-controls="mobile-nav"
-          aria-label={open ? t("a11y.closeMenu") : t("a11y.openMenu")}
           onClick={() => setOpen((v) => !v)}
         >
-          <Icon name={open ? "close" : "menu"} />
+          <Icon name={open ? "close" : "menu"} size={22} />
+          {open ? t("common.close") : t("header.menu")}
         </button>
       </div>
 
-      {/* навигация: десктоп */}
       <nav aria-label={t("a11y.mainNav")} className="hidden border-t border-line lg:block">
-        <ul className="container-page flex flex-wrap gap-1 py-1">
+        <ul className="container-page flex flex-wrap gap-x-2">
           {NAV.map((item) => (
             <li key={item.key}>
               <NavLink
                 to={lp(item.to)}
                 className={({ isActive }) =>
                   clsx(
-                    "block rounded-md px-3 py-2 text-sm font-medium no-underline",
-                    isActive ? "bg-primary/10 text-primary" : "text-ink hover:bg-surface-2",
+                    "block border-b-2 px-3 py-3 font-medium no-underline hover:bg-surface",
+                    isActive ? "border-ink text-ink" : "border-transparent text-ink",
                   )
                 }
               >
@@ -163,29 +101,27 @@ export function Header() {
         </ul>
       </nav>
 
-      {/* навигация: мобильная */}
       {open && (
-        <div id="mobile-nav" className="border-t border-line lg:hidden">
-          <div className="container-page space-y-3 py-3">
-            <HeaderSearch onDone={() => setOpen(false)} />
-            <nav aria-label={t("a11y.mainNav")}>
-              <ul className="grid grid-cols-1 gap-1 sm:grid-cols-2">
-                <li>
-                  <Link to={lp("/catalog")} className="block rounded-md bg-primary px-3 py-3 font-medium text-primary-ink no-underline">
-                    {t("header.catalogButton")}
-                  </Link>
-                </li>
-                {NAV.filter((n) => n.key !== "catalog").map((item) => (
-                  <li key={item.key}>
-                    <NavLink to={lp(item.to)} className="block rounded-md px-3 py-3 text-ink no-underline hover:bg-surface-2">
-                      {t(`nav.${item.key}`)}
-                    </NavLink>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          </div>
-        </div>
+        <nav id="mobile-nav" aria-label={t("a11y.mainNav")} className="border-t border-line lg:hidden">
+          <ul className="container-page divide-y divide-line py-2">
+            <li className="py-2">
+              <Link to={lp("/catalog")} className="btn-primary w-full">
+                {t("header.catalogButton")}
+              </Link>
+            </li>
+            {NAV.filter((n) => n.key !== "catalog").map((item) => (
+              <li key={item.key}>
+                <NavLink to={lp(item.to)} className="block min-h-14 py-4 text-ink no-underline">
+                  {t(`nav.${item.key}`)}
+                </NavLink>
+              </li>
+            ))}
+            <li className="flex items-center justify-between gap-3 py-3">
+              <LangSwitch />
+              <ThemeToggle />
+            </li>
+          </ul>
+        </nav>
       )}
     </header>
   );
