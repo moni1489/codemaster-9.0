@@ -29,7 +29,8 @@ interface AskResponse {
   disclaimer: string;
   intent: Record<string, unknown>;
   lang: Lang; // язык ответа: на казахский вопрос — казахский, даже на русской версии сайта
-  map_url?: string; // ответ с адресом: «Открыть в 2ГИС?»
+  action_url?: string; // «Позвонить?» → tel:…, «Открыть в 2ГИС?» → 2gis.kz
+  action?: "call" | "map" | "";
 }
 
 interface Turn {
@@ -366,11 +367,11 @@ export function AssistantChat({ compact = false, onNavigate }: { compact?: boole
       return;
     }
     const last = turnsRef.current[turnsRef.current.length - 1];
-    if (last?.a?.map_url && isYes(v)) {
-      // уходим на 2ГИС в той же вкладке: так телефон открывает приложение (window.open без нажатия блокируется)
+    if (last?.a?.action_url && isYes(v)) {
+      // в той же вкладке: так телефон открывает звонилку с номером / приложение 2ГИС (window.open без нажатия блокируется)
       hush();
-      setTurns((ts) => [...ts, { q: v, note: t("voice.openingMap") }]);
-      window.location.assign(last.a.map_url);
+      setTurns((ts) => [...ts, { q: v, note: t(last.a!.action === "call" ? "voice.calling" : "voice.openingMap") }]);
+      window.location.assign(last.a.action_url);
       return;
     }
     const cmd = parseShow(v);
@@ -547,9 +548,9 @@ export function AssistantChat({ compact = false, onNavigate }: { compact?: boole
                     {speaking ? t("voice.stopReading") : t("voice.replay")}
                   </button>
                 )}
-                {turn.a.map_url && (
-                  <a href={turn.a.map_url} className="btn-primary mt-2 px-4 no-underline">
-                    <Icon name="pin" size={20} /> {t("voice.openMap")}
+                {turn.a.action_url && (
+                  <a href={turn.a.action_url} className="btn-primary mt-2 px-4 no-underline">
+                    {turn.a.action === "call" ? <><Icon name="phone" size={20} /> {t("voice.call")}</> : <><Icon name="pin" size={20} /> {t("voice.openMap")}</>}
                   </a>
                 )}
                 {turn.a.degraded && <p className="mt-2 text-sm text-warn">{t("assistant.degraded")}</p>}

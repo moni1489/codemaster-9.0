@@ -58,7 +58,10 @@ STOP_WORDS = {
     "қалай", "болады", "бола", "қандай", "керек", "маған", "бар",
     "which", "where", "what", "could", "would", "about", "there", "please", "does", "have",
 }  # fmt: skip
-MAP_OFFER = {"ru": "Открыть в 2ГИС?", "kk": "2ГИС-те ашайын ба?", "en": "Open it in 2GIS?"}
+OFFER = {
+    "map": {"ru": "Открыть в 2ГИС?", "kk": "2ГИС-те ашайын ба?", "en": "Open it in 2GIS?"},
+    "call": {"ru": "Позвонить?", "kk": "Қоңырау шалайын ба?", "en": "Shall I call?"},
+}
 
 
 def two_gis_url(lat: float | None, lon: float | None, address: str) -> str:
@@ -92,7 +95,8 @@ class SiteItem:
     url: str
     faq: bool = False
     price: bool = False
-    map_url: str = ""  # ответ с адресом филиала — ссылка 2ГИС (на телефоне открывает приложение)
+    action_url: str = ""  # «Позвонить?» → tel:…, «Открыть в 2ГИС?» → ссылка 2ГИС (на телефоне — приложения)
+    action: str = ""  # call | map
     context: str = ""  # участвует только в поиске (раздел прейскуранта и т.п.), в ответ не попадает
     score: float = 0.0
 
@@ -181,13 +185,19 @@ async def contact_answer(
     if not parts:
         return None
     head = f"{p.tr.short_name}. "
-    map_url = ""
-    if any(x.startswith(f"{lb['address']}:") for x in parts):  # спросили адрес — предлагаем открыть в 2ГИС
-        map_url = two_gis_url(branch.lat, branch.lon, f"{p.tr.address}, {p.tr.locality}")
-        parts.append(MAP_OFFER[lang])
-        spoken.append(MAP_OFFER[lang])
+    # одно предложение на ответ — по первому спрошенному: телефон → «Позвонить?», адрес → «Открыть в 2ГИС?»
+    action, action_url = "", ""
+    for x in parts:
+        if x.startswith(f"{lb['phone']}:") and branch.phone:
+            action, action_url = "call", "tel:" + re.sub(r"[^\d+]", "", branch.phone)
+        elif x.startswith(f"{lb['address']}:"):
+            action, action_url = "map", two_gis_url(branch.lat, branch.lon, f"{p.tr.address}, {p.tr.locality}")
+        if action:
+            parts.append(OFFER[action][lang])
+            spoken.append(OFFER[action][lang])
+            break
     text = head + " ".join(parts)
-    item = SiteItem(title=p.tr.name, text=text, url=f"/{lang}/branches", map_url=map_url)
+    item = SiteItem(title=p.tr.name, text=text, url=f"/{lang}/branches", action_url=action_url, action=action)
     return text, head + " ".join(spoken), item
 
 

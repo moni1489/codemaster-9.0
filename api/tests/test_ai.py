@@ -216,9 +216,9 @@ async def test_conversation_context(client: AsyncClient) -> None:
         },
     )
     assert r.status_code == 200 and "Риддер" in r.json()["text"] and "Адрес" in r.json()["text"]
-    # адрес — с предложением открыть 2ГИС; на телефон предложения нет
-    assert "2ГИС" in r.json()["text"] and r.json()["map_url"].startswith("https://2gis.kz/")
-    assert r1["map_url"] == "" and "2ГИС" not in r1["text"]
+    # адрес — «Открыть в 2ГИС?», телефон — «Позвонить?» с уже набранным номером
+    assert "2ГИС" in r.json()["text"] and r.json()["action_url"].startswith("https://2gis.kz/")
+    assert r1["action"] == "call" and r1["action_url"].startswith("tel:8") and "Позвонить?" in r1["text"]
 
 
 def test_misrecognised_kazakh_speech() -> None:

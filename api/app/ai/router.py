@@ -68,7 +68,8 @@ class AskOut(BaseModel):
     removed_items: int
     disclaimer: str
     lang: str
-    map_url: str = ""
+    action_url: str = ""
+    action: str = ""
 
 
 @router.post("/ask", response_model=AskOut, dependencies=[Depends(rate_limit("20/minute", "assistant"))])
