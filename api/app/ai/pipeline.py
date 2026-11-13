@@ -77,6 +77,7 @@ class Answer:
     disclaimer: str = ""
     notes: list[str] = field(default_factory=list)
     lang: str = "ru"  # язык ответа: на казахский вопрос — по-казахски, даже на русской версии сайта
+    map_url: str = ""  # адрес филиала: «Открыть в 2ГИС?» — на «да» чат открывает эту ссылку
 
 
 async def _search(session: AsyncSession, intent: Intent, lang: str) -> tuple[list[Document], set[Any]]:
@@ -284,7 +285,9 @@ async def ask(
     # 1) телефон/адрес/почта/режим — точные данные из карточки филиала
     contact = await contact_answer(session, query, lang, context=prev.q if follow and prev else "")
     if contact:
-        return await _info(llm_q, lang, provider, [contact[2]], text=contact[0], speech=contact[1])
+        answer = await _info(llm_q, lang, provider, [contact[2]], text=contact[0], speech=contact[1])
+        answer.map_url = contact[2].map_url
+        return answer
     # 2) вопрос о работе архива (справки, услуги, читальный зал…), а не о документах — сначала страницы сайта
     if is_info_query(site_q) and not (base.period_from or base.doc_type or base.restricted_topic):
         items = await search_site(session, site_q, lang)

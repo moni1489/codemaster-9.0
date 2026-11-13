@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { parseUi } from "../features/assistant/Assistant";
+import { isYes, parseUi } from "../features/assistant/Assistant";
 
 test("команды оформления", () => {
   expect(parseUi("Мне не видно")).toBe("lv_on");
@@ -19,4 +19,9 @@ test("команды оформления", () => {
   expect(parseUi("фотографии Усть-Каменогорска 1960-х")).toBeNull();
   expect(parseUi("покажи газеты 1945 года")).toBeNull();
   expect(parseUi("как увеличить сроки хранения документов о стаже работы на предприятии в 1980-х")).toBeNull();
+});
+
+test("согласие открыть 2ГИС", () => {
+  for (const s of ["да", "Да.", "да, пожалуйста", "открой", "иә", "ашыңыз", "yes", "ok"]) expect(isYes(s)).toBe(true);
+  for (const s of ["нет", "адрес Риддерского филиала", "да нет, телефон", "открой газеты 1945"]) expect(isYes(s)).toBe(false);
 });

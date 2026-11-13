@@ -29,6 +29,7 @@ interface AskResponse {
   disclaimer: string;
   intent: Record<string, unknown>;
   lang: Lang; // язык ответа: на казахский вопрос — казахский, даже на русской версии сайта
+  map_url?: string; // ответ с адресом: «Открыть в 2ГИС?»
 }
 
 interface Turn {
@@ -184,6 +185,10 @@ export function parseShow(text: string): { show: boolean; all: boolean; rest: st
   if (ord && words.length <= 2) return { show: true, all: false, rest: "", idx: ord[1] };
   return { show: true, all: !!all, rest: THAT_RE.test(rest) ? "" : rest.trim(), idx: 0 };
 }
+
+// согласие на «Открыть в 2ГИС?» — короткое «да» / «открой» / «иә» / «ашыңыз»
+const YES_RE = /^(?:да|ага|давай(?:те)?|конечно|хорошо|ок(?:ей)?|открой(?:те)?|открыть|иә|ия|жарайды|ашыңыз|ашшы|аш|yes|yeah|yep|sure|ok(?:ay)?|open(?: it)?)(?:[\s,]+(?:пожалуйста|өтінемін|please|да|иә))?[\s.!?]*$/i;
+export const isYes = (text: string) => YES_RE.test(text.trim());
 
 // Команды оформления: «мне не видно», «тёмная тема», «выключи версию для слабовидящих».
 // Только короткие фразы — длинный текст это вопрос к каталогу, а не команда.
@@ -360,6 +365,14 @@ export function AssistantChat({ compact = false, onNavigate }: { compact?: boole
       if (voiceRef.current) say(t(key));
       return;
     }
+    const last = turnsRef.current[turnsRef.current.length - 1];
+    if (last?.a?.map_url && isYes(v)) {
+      // уходим на 2ГИС в той же вкладке: так телефон открывает приложение (window.open без нажатия блокируется)
+      hush();
+      setTurns((ts) => [...ts, { q: v, note: t("voice.openingMap") }]);
+      window.location.assign(last.a.map_url);
+      return;
+    }
     const cmd = parseShow(v);
     if (cmd.show && !cmd.rest) {
       // «покажи (все)» — про предыдущий ответ, без нового запроса
@@ -533,6 +546,11 @@ export function AssistantChat({ compact = false, onNavigate }: { compact?: boole
                     <Icon name={speaking ? "stop" : "volume"} size={20} />
                     {speaking ? t("voice.stopReading") : t("voice.replay")}
                   </button>
+                )}
+                {turn.a.map_url && (
+                  <a href={turn.a.map_url} className="btn-primary mt-2 px-4 no-underline">
+                    <Icon name="pin" size={20} /> {t("voice.openMap")}
+                  </a>
                 )}
                 {turn.a.degraded && <p className="mt-2 text-sm text-warn">{t("assistant.degraded")}</p>}
                 {turn.a.sources.length > 0 && (

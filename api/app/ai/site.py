@@ -9,6 +9,7 @@ from __future__ import annotations
 import html
 import re
 from dataclasses import dataclass
+from urllib.parse import quote
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -57,6 +58,16 @@ STOP_WORDS = {
     "қалай", "болады", "бола", "қандай", "керек", "маған", "бар",
     "which", "where", "what", "could", "would", "about", "there", "please", "does", "have",
 }  # fmt: skip
+MAP_OFFER = {"ru": "Открыть в 2ГИС?", "kk": "2ГИС-те ашайын ба?", "en": "Open it in 2GIS?"}
+
+
+def two_gis_url(lat: float | None, lon: float | None, address: str) -> str:
+    """Как на странице филиалов: маршрут до точки, без координат — поиск по адресу."""
+    if lat is not None and lon is not None:
+        return f"https://2gis.kz/directions/points/%7C{lon}%2C{lat}"
+    return f"https://2gis.kz/search/{quote(address)}"
+
+
 GENERIC_STEMS = {"архив", "докум", "archi", "docum"}  # встречаются на каждой странице
 LABELS = {
     "ru": {"phone": "Телефон", "address": "Адрес", "email": "Электронная почта", "hours": "Режим работы",
@@ -81,6 +92,7 @@ class SiteItem:
     url: str
     faq: bool = False
     price: bool = False
+    map_url: str = ""  # ответ с адресом филиала — ссылка 2ГИС (на телефоне открывает приложение)
     context: str = ""  # участвует только в поиске (раздел прейскуранта и т.п.), в ответ не попадает
     score: float = 0.0
 
@@ -169,8 +181,14 @@ async def contact_answer(
     if not parts:
         return None
     head = f"{p.tr.short_name}. "
+    map_url = ""
+    if any(x.startswith(f"{lb['address']}:") for x in parts):  # спросили адрес — предлагаем открыть в 2ГИС
+        map_url = two_gis_url(branch.lat, branch.lon, f"{p.tr.address}, {p.tr.locality}")
+        parts.append(MAP_OFFER[lang])
+        spoken.append(MAP_OFFER[lang])
     text = head + " ".join(parts)
-    return text, head + " ".join(spoken), SiteItem(title=p.tr.name, text=text, url=f"/{lang}/branches")
+    item = SiteItem(title=p.tr.name, text=text, url=f"/{lang}/branches", map_url=map_url)
+    return text, head + " ".join(spoken), item
 
 
 def _page_url(slug: str, lang: str) -> str:

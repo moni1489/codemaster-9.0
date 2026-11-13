@@ -46,6 +46,8 @@ const en: Dict = {
     denied: "No access to the microphone. Allow it in the browser settings.",
     heroAsk: "Not sure where to look? Ask by voice",
     opening: "Opening “{{title}}”.",
+    openingMap: "Opening 2GIS…",
+    openMap: "Open in 2GIS",
     openingAll: "Showing all records found.",
     nothingToShow: "First say what to find, for example: “Show me photos of Oskemen in the 1960s”.",
     on: "on",
