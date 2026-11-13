@@ -35,13 +35,20 @@ NOT_FOUND = {
     "yet, so the reading room can help.",
 }
 SENTENCE_RE = re.compile(r"(?<=[.!?…])\s+")
+# голос читает это как «бэкслэш», «звёздочка»…: разметка и экранирование от LLM, служебные пометки валидатора
+THINK_RE = re.compile(r"<think>.*?(?:</think>|$)", re.S)
+NOTE_RE = re.compile(r"\[[^\]]*\]")
+ANSWER_LABEL_RE = re.compile(r"^\s*(?:ответ|жауап|answer)\s*:\s*", re.I)
+JUNK_RE = re.compile(r"\\[ntr\"']?|[*_#`|<>{}~^/]")
 
 
 def to_speech(text: str, max_sentences: int = 2, max_chars: int = 280) -> str:
-    """Что читать вслух: без шифров, ссылок, ID и списков — только первые одна-две фразы."""
+    """Что читать вслух: только сам ответ — без шифров, ссылок, ID, списков, разметки; первые одна-две фразы."""
+    text = THINK_RE.sub("", text).replace("\\n", "\n")
     text = "\n".join(ln for ln in text.splitlines() if not ln.lstrip().startswith(("•", "-", "*")))
-    for rx in (URL_RE, CIPHER_RE, UUID_RE):
+    for rx in (URL_RE, CIPHER_RE, UUID_RE, NOTE_RE):
         text = rx.sub("", text)
+    text = ANSWER_LABEL_RE.sub("", JUNK_RE.sub(" ", text))
     text = re.sub(r"\(\s*\)|\s+([,.;:])", r"\1", re.sub(r"\s+", " ", text))
     text = re.sub(r"[,;:—–-]+\s*(?=[.!?…])", "", text).strip()  # «(1965), .» после вырезанного шифра
     out = " ".join(SENTENCE_RE.split(text)[:max_sentences])

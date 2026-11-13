@@ -160,6 +160,9 @@ def test_speech_is_short_and_clean() -> None:
     s = pipeline.to_speech(text)
     assert s == "Нашлось записей: 6. Лучше всего подходит «Набережная Иртыша» (1965)."
     assert len(pipeline.to_speech("слово " * 200)) <= 281
+    # разметка/экранирование от LLM и пометки валидатора вслух не читаются
+    raw = '<think>x</think>Ответ: **Есть** фото\\n«Набережная» \\"1965\\" [шифр удалён: нет в результатах поиска].'
+    assert pipeline.to_speech(raw) == "Есть фото «Набережная» 1965."
 
 
 async def test_answer_has_short_speech(client: AsyncClient) -> None:
