@@ -608,7 +608,7 @@ export function AssistantChat({ compact = false, onNavigate }: { compact?: boole
           <Icon name="arrow" size={22} />
         </button>
       </form>
-      <button type="button" className="btn-ghost mt-2 self-start px-3" aria-pressed={voiceOn} onClick={toggleVoice}>
+      <button type="button" className="btn-ghost mt-2 self-start px-3 max-sm:hidden" aria-pressed={voiceOn} onClick={toggleVoice}>
         <Icon name="volume" size={20} /> {t("voice.readAloud")}: {voiceOn ? t("voice.on") : t("voice.off")}
       </button>
       {turns.length > 0 && (

@@ -89,7 +89,7 @@ function Hero() {
               </button>
             </div>
           </form>
-          <p className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2">
+          <p className="mt-5 hidden flex-wrap sm:flex items-center gap-x-4 gap-y-2">
             <span className="opacity-90">{t("home.examples")}</span>
             {EXAMPLES[lang].map((ex) => (
               <button key={ex} type="button" className="min-h-11 text-left font-medium underline underline-offset-4 hover:decoration-2" onClick={() => go(ex)}>

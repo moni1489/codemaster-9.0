@@ -52,6 +52,12 @@ function FlyTo({ pos }: { pos: [number, number] | null }) {
   return null;
 }
 
+// https-ссылка 2ГИС: на телефоне с установленным приложением открывается само приложение (universal/app link)
+const twoGisUrl = (b: Branch) =>
+  b.lat !== null && b.lon !== null
+    ? `https://2gis.kz/directions/points/%7C${b.lon}%2C${b.lat}`
+    : `https://2gis.kz/search/${encodeURIComponent(`${b.address}, ${b.locality}`)}`;
+
 function RoutePanel({ b }: { b: Branch }) {
   const { t } = useT();
   const [from, setFrom] = useState("");
@@ -63,7 +69,7 @@ function RoutePanel({ b }: { b: Branch }) {
   const destText = encodeURIComponent(`${b.address}, ${b.locality}`);
   const originText = geo ? `${geo[0]},${geo[1]}` : from;
   const links = [
-    { name: "2GIS", url: dest ? `https://2gis.kz/directions/points/%7C${dest[1]}%2C${dest[0]}` : `https://2gis.kz/search/${destText}` },
+    { name: "2GIS", url: twoGisUrl(b) },
     { name: "Google Maps", url: `https://www.google.com/maps/dir/?api=1${originText ? `&origin=${encodeURIComponent(originText)}` : ""}&destination=${dest ? `${dest[0]},${dest[1]}` : destText}` },
     { name: "Яндекс Карты", url: dest ? `https://yandex.kz/maps/?rtext=${geo ? `${geo[0]},${geo[1]}` : ""}~${dest[0]},${dest[1]}` : `https://yandex.kz/maps/?text=${destText}` },
   ];
@@ -132,7 +138,7 @@ export function BranchesPage() {
       <h2 id="sel-h" className="text-[1.25rem]">{sel.name}</h2>
       <TranslationNotice info={sel.translation} />
       <ul className="mt-3 space-y-3">
-        <li className="flex gap-2"><Icon name="pin" size={20} className="mt-1 shrink-0 text-primary" />{sel.address}, {sel.locality}</li>
+        <li className="flex gap-2"><Icon name="pin" size={20} className="mt-1 shrink-0 text-primary" /><ExternalLink href={twoGisUrl(sel)} className="inline">{sel.address}, {sel.locality}</ExternalLink></li>
         {sel.phone && <li className="flex gap-2"><Icon name="phone" size={20} className="mt-1 shrink-0 text-primary" /><a href={`tel:${sel.phone.replace(/[^\d+]/g, "")}`}>{sel.phone}</a></li>}
         {sel.email && <li className="flex gap-2"><Icon name="mail" size={20} className="mt-1 shrink-0 text-primary" /><a href={`mailto:${sel.email}`}>{sel.email}</a></li>}
         {sel.hours && <li className="flex gap-2"><Icon name="clock" size={20} className="mt-1 shrink-0 text-primary" />{sel.hours}</li>}
