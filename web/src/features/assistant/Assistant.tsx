@@ -2,6 +2,8 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useLang, useLocalePath } from "../../app/lang";
+import { type LowVision, setLowVision, useLowVision } from "../../app/lowVision";
+import { setTheme } from "../../app/theme";
 import { useT } from "../../app/useT";
 import { Icon } from "../../components/ui/Icon";
 import type { Lang } from "../../lib/types";
@@ -35,6 +37,7 @@ interface Turn {
   show?: boolean;
   a?: AskResponse;
   error?: string;
+  note?: string; // ответ на команду оформления (тема, версия для слабовидящих)
 }
 
 // ── Голос: встроенные в браузер распознавание (Web Speech API) и синтез речи. Без внешних библиотек. ──
@@ -182,19 +185,37 @@ export function parseShow(text: string): { show: boolean; all: boolean; rest: st
   return { show: true, all: !!all, rest: THAT_RE.test(rest) ? "" : rest.trim(), idx: 0 };
 }
 
+// Команды оформления: «мне не видно», «тёмная тема», «выключи версию для слабовидящих».
+// Только короткие фразы — длинный текст это вопрос к каталогу, а не команда.
+export type UiCmd = "lv_on" | "lv_off" | "dark" | "light";
+export function parseUi(text: string): UiCmd | null {
+  const s = text.toLowerCase().replace(/ё/g, "е").trim();
+  if (s.length > 60) return null;
+  const off = /выключ|отключ|убер|убра|өшір|turn off|switch off|disable/.test(s);
+  if (/слабовид|көзі нашар|нашар көр|low.?vision|visually impaired|accessib/.test(s)) return off ? "lv_off" : "lv_on";
+  if (/обычн\S*\s+(верси|режим|вид|сайт)|қалыпты|normal (version|view|mode|site)/.test(s)) return "lv_off";
+  if (/темн\S*\s+(тем|режим|фон)|ночн\S*\s+(режим|тем)|темнее|слишком ярко|режет глаза|қараңғы|түнгі|dark (mode|theme)|darker|too bright/.test(s))
+    return off ? "light" : "dark";
+  if (/светл\S*\s+(тем|режим|фон)|дневн\S*\s+(режим|тем)|светлее|слишком темно|жарық|ашық (тақырып|режим|тема)|light (mode|theme)|lighter|too dark/.test(s))
+    return off ? "dark" : "light";
+  if (/(не|плохо|ничего не)\s+(вижу|видно)|не разгляд|мелк|крупне|увелич|көрмеймін|көрінбейді|көре алмаймын|үлкейт|can'?t see|cannot see|hard to (see|read)|bigger|larger/.test(s))
+    return "lv_on";
+  return null;
+}
+
 // история разговора живёт до закрытия вкладки и переживает переходы по сайту («покажи» уводит со страницы)
 const TURNS_KEY = "assistant.turns";
 function loadTurns(): Turn[] {
   try {
     const v: unknown = JSON.parse(sessionStorage.getItem(TURNS_KEY) ?? "[]");
-    return Array.isArray(v) ? (v as Turn[]).filter((x) => x.a || x.error) : [];
+    return Array.isArray(v) ? (v as Turn[]).filter((x) => x.a || x.error || x.note) : [];
   } catch {
     return [];
   }
 }
 function saveTurns(ts: Turn[]): void {
   try {
-    sessionStorage.setItem(TURNS_KEY, JSON.stringify(ts.filter((x) => x.a || x.error).slice(-20)));
+    sessionStorage.setItem(TURNS_KEY, JSON.stringify(ts.filter((x) => x.a || x.error || x.note).slice(-20)));
   } catch {
     /* без хранилища история живёт до перезагрузки */
   }
@@ -215,6 +236,7 @@ export function AssistantChat({ compact = false, onNavigate }: { compact?: boole
   const lp = useLocalePath();
   const { t } = useT();
   const lang = useLang();
+  const lv = useLowVision();
   const [q, setQ] = useState("");
   const [turns, setTurnsState] = useState<Turn[]>(loadTurns);
   const turnsRef = useRef(turns);
@@ -319,6 +341,25 @@ export function AssistantChat({ compact = false, onNavigate }: { compact?: boole
     const v = query.trim();
     if (v.length < 2 || ask.isPending) return;
     setQ("");
+    const ui = parseUi(v);
+    if (ui) {
+      hush();
+      let key: string;
+      if (ui === "lv_on") {
+        key = lv.on ? (lv.fs < 3 ? "voice.uiBigger" : "voice.uiMax") : "voice.uiLvOn";
+        setLowVision(lv.on ? { fs: Math.min(3, lv.fs + 1) as LowVision["fs"] } : { on: true });
+      } else if (ui === "lv_off") {
+        key = "voice.uiLvOff";
+        setLowVision({ on: false });
+      } else {
+        key = ui === "dark" ? "voice.uiDark" : "voice.uiLight";
+        setTheme(ui);
+        if (lv.on) setLowVision({ scheme: ui === "dark" ? "wb" : "bw" }); // у версии для слабовидящих своя схема
+      }
+      setTurns((ts) => [...ts, { q: v, note: t(key) }]);
+      if (voiceRef.current) say(t(key));
+      return;
+    }
     const cmd = parseShow(v);
     if (cmd.show && !cmd.rest) {
       // «покажи (все)» — про предыдущий ответ, без нового запроса
@@ -477,7 +518,8 @@ export function AssistantChat({ compact = false, onNavigate }: { compact?: boole
         {turns.map((turn, i) => (
           <div key={i} className="space-y-2">
             <p className="ml-auto max-w-[85%] rounded-lg bg-primary px-3 py-2 text-primary-ink">{turn.q}</p>
-            {!turn.a && !turn.error && <p className="text-muted">{t("assistant.thinking")}</p>}
+            {turn.note && <p className="max-w-[95%] rounded-lg border border-line bg-surface p-3">{turn.note}</p>}
+            {!turn.a && !turn.error && !turn.note && <p className="text-muted">{t("assistant.thinking")}</p>}
             {turn.error && (
               <p className="text-danger" role="alert">
                 {turn.error}

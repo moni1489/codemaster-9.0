@@ -27,6 +27,12 @@ const en: Dict = {
     wide: "Wide"
   },
   voice: {
+    uiLvOn: "Low-vision mode is on: large text and high-contrast colours. Say “bigger” for even larger text, or “normal version” to switch back.",
+    uiBigger: "Made the text bigger.",
+    uiMax: "The text is already at its largest. Say “normal version” to switch back.",
+    uiLvOff: "Switched back to the normal version.",
+    uiDark: "Dark theme is on.",
+    uiLight: "Light theme is on.",
     transcribing: "Recognising speech…",
     notHeard: "Could not make out the speech. Try again or type your question.",
     replay: "Read the answer aloud",
