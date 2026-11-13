@@ -3,7 +3,9 @@
   var t = null;
   try { t = window.localStorage.getItem("theme"); } catch (e) { t = null; }
   if (t !== "light" && t !== "dark") {
-    t = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    // на телефонах и планшетах (сенсорный экран) по умолчанию светлая, системная тёмная игнорируется
+    var mq = function (q) { return window.matchMedia && window.matchMedia(q).matches; };
+    t = !mq("(pointer: coarse)") && mq("(prefers-color-scheme: dark)") ? "dark" : "light";
   }
   var el = document.documentElement;
   el.setAttribute("data-theme", t);
